@@ -34,31 +34,31 @@ int main(){
 
     Particles p;
     makeParticles(&p);
-    initParticles(&p, 10.0);
+    scatterParticles(&p, 10.0);
 
     //test initParticles
-    std::ofstream checkInitPositions("testData/checkInitParticles.data");
+    std::ofstream checkScatterPositions("testData/checkScatterParticles.data");
     
     cudaMemcpy(p.diam, p.diam_dev, NP * sizeof(float), cudaMemcpyDeviceToHost);
     cudaMemcpy(p.x, p.x_dev, D * NP * sizeof(float), cudaMemcpyDeviceToHost);
     cudaMemcpy(p.v, p.v_dev, D * NP * sizeof(float), cudaMemcpyDeviceToHost);
 
     for(uint n = 0; n < NP; n++){
-        checkInitPositions << p.diam[n] << " ";
+        checkScatterPositions << p.diam[n] << " ";
     }
-    checkInitPositions << std::endl;
+    checkScatterPositions << std::endl;
 
     for(uint n = 0; n < NP; n++){
         for(char d = 0; d < D; d++){
-            checkInitPositions << p.x[d * NP + n] << " ";
+            checkScatterPositions << p.x[d * NP + n] << " ";
         }
         for(char d = 0; d < D; d++){
-            checkInitPositions << p.v[d * NP + n] << " ";
+            checkScatterPositions << p.v[d * NP + n] << " ";
         }
-        checkInitPositions << std::endl;
+        checkScatterPositions << std::endl;
     }
 
-    checkInitPositions.close();
+    checkScatterPositions.close();
     
     killParticles(&p);
 

@@ -53,27 +53,27 @@ namespace PhysPeach{
     }
 
     //setters and getters
-    __global__ void setRndPositions(float l,float *diam_dev, float *x_dev, float *v_dev ,curandState *rndState_dev){
+    __global__ void setRndParticleStates(float l,float *diam, float *x, float *v ,curandState *rndState){
         uint i_global = blockIdx.x * blockDim.x + threadIdx.x;
         
         float atmp = a2 - a1;
         for(uint i = i_global; i < NP; i+=NB*NT){
-            diam_dev[i] = a1 + atmp * (i%2);
+            diam[i] = a1 + atmp * (i%2);
         }
 
-        curandState localState = rndState_dev[i_global];
+        curandState localState = rndState[i_global];
         for(uint i = i_global; i < D * NP; i+=NB*NT){
-            x_dev[i] = l * curand_uniform(&localState);
-            v_dev[i] = 0.0;
+            x[i] = l * curand_uniform(&localState);
+            v[i] = 0.0;
         }
-        rndState_dev[i_global] = localState;
+        rndState[i_global] = localState;
     }
 
-    void initParticles(Particles* p, float L){
+    void scatterParticles(Particles* p, float L){
         //avoiding super overraps
         float Ltmp = L - 0.5 * (a1+a2);
 
         //set positions by uniform random destribution
-        setRndPositions<<<NB,NT>>>(Ltmp, p->diam_dev, p->x_dev, p->v_dev, p->rndState_dev);
+        setRndParticleStates<<<NB,NT>>>(Ltmp, p->diam_dev, p->x_dev, p->v_dev, p->rndState_dev);
     }
 }

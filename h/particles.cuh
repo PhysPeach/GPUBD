@@ -27,7 +27,7 @@ namespace PhysPeach{
     };
     void makeParticles(Particles* particles);
     void killParticles(Particles* particles);
-    void initParticles(Particles* particles, float L);
+    void scatterParticles(Particles* particles, float L);
 
     //inline float getNK(Particles* particles);
     
