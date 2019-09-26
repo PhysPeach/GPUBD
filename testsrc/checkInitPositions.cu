@@ -37,28 +37,28 @@ int main(){
     initParticles(&p, 10.0);
 
     //test initParticles
-    std::ofstream checkInitParticles("testData/checkInitParticles.data");
+    std::ofstream checkInitPositions("testData/checkInitParticles.data");
     
     cudaMemcpy(p.diam, p.diam_dev, N * sizeof(float), cudaMemcpyDeviceToHost);
     cudaMemcpy(p.x, p.x_dev, D * N * sizeof(float), cudaMemcpyDeviceToHost);
     cudaMemcpy(p.v, p.v_dev, D * N * sizeof(float), cudaMemcpyDeviceToHost);
 
     for(unsigned int n = 0; n < N; n++){
-        checkInitParticles << p.diam[n] << " ";
+        checkInitPositions << p.diam[n] << " ";
     }
-    checkInitParticles << std::endl;
+    checkInitPositions << std::endl;
 
     for(unsigned int n = 0; n < N; n++){
         for(char d = 0; d < D; d++){
-            checkInitParticles << p.x[d * N + n] << " ";
+            checkInitPositions << p.x[d * N + n] << " ";
         }
         for(char d = 0; d < D; d++){
-            checkInitParticles << p.v[d * N + n] << " ";
+            checkInitPositions << p.v[d * N + n] << " ";
         }
-        checkInitParticles << std::endl;
+        checkInitPositions << std::endl;
     }
 
-    checkInitParticles.close();
+    checkInitPositions.close();
     
     killParticles(&p);
 
