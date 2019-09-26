@@ -70,5 +70,82 @@ namespace PhysPeach{
 
         return;
     }
+
+    void prepareBox(Box* box){
+        box->logFile << "Set InitPositions" << std::endl;
+        scatterParticles(&box->p, box->L);
+        cudaMemcpy(box->p.diam, box->p.diam_dev, NP * sizeof(float),cudaMemcpyDeviceToHost);
+        for(uint n = 0; n < NP; n++){
+            box->positionFile << box->p.diam[n] << " ";
+        }
+        box->positionFile << std::endl << std::endl;
+        //set posMem and list
+        updateGrid2D<<<NB,NT>>>(box, box->grid_dev, box->positionMemory_dev, box->p.x_dev);
+        //remove overraps by using harmonic potential
+        uint Nt = 20. / box->dt;
+        /*for(int nt = 0; nt < Nt; nt++){
+            tHarmonicDvlp();
+            judgeUpdateGrid();
+        }*/
+        
+        box->logFile << "-> SIP Done!" << std::endl;
+        return;
+    }
+    void initBox(Box* box, uint ID){
+        box->id = ID;
+        std::cout << "Start Initialisation: ID = " << box->id << std::endl;
+    
+       //for record
+        std::ostringstream positionFileName;
+        positionFileName << "../pos/N" << (uint)NP << "/T" << Tfin << "/posBD_N" << (uint)NP << "_T" << Tfin << "_id" << box->id <<".data";
+        box->positionFile.open(positionFileName.str().c_str());
+        std::ostringstream logFileName;
+        logFileName << "../log/N" << (uint)NP << "/T" << Tfin << "/logBD_N" << (uint)NP << "_T" << Tfin << "_id" << box->id <<".log";
+        box->logFile.open(logFileName.str().c_str());
+
+        box->logFile << "Start Initialisation: ID = " << box->id << std::endl;
+        box->logFile << "Created Box ID = " << box->id << std::endl;
+        
+        //hotstart(Tinit >> 1)
+        setdt_T(box, dt_INIT, Tinit);
+
+        prepareBox(box);
+    
+        //equilibrateSys(30.0);
+    
+        //Tinit -> Tfin
+        //coolSys(Tfin, tau);
+    
+        //setdt_T(dt_BD, Tfin);
+    
+        //equilibrateSys(10 * tau);
+    
+        box->logFile << "-> Init Done!" << std::endl;
+        return;
+    }
     //for grid
+    __global__ void updateGrid2D(Box* box, unsigned int* grid, float* positionMemory, float* x){
+        unsigned int n_global = blockIdx.x * blockDim.x + threadIdx.x;
+
+        float bL = box->L;
+        uint bM = box->M;
+        uint bEpM = box->EpM;
+        float rc = bL/(float)bM;
+    
+        unsigned int gridPos[D];
+        unsigned int gridAddress;//[0, M * M - 1]
+        unsigned int n_m;
+        unsigned int counter;
+    
+        for(unsigned int n = n_global; n < NP; n += NB* NT){
+            gridPos[0] = (unsigned int)x[n]/rc;
+            gridPos[1] = (unsigned int)x[NP+n]/rc;
+            gridAddress = gridPos[1] * bM + gridPos[0];
+            n_m = gridAddress * bEpM;
+            counter = 1 + atomicAdd(&grid[n_m], 1);
+            grid[n_m + counter] = n;
+            positionMemory[n] = x[n];
+            positionMemory[NP + n] = x[NP + n];
+        }
+    }
 }

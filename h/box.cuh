@@ -43,22 +43,17 @@ namespace PhysPeach{
 
     void makeBox(Box* box);
     void killBox(Box* box);
-    //void initBox(Box* box, uint ID);
+    void initBox(Box* box, uint ID);
     
     //cell list
-    /*__global__ void updateGrid2D(
-        Box* box,
-        uint* map_dev, 
-        float* x_dev, 
-        float* positionMemory_dev);
-    */
-    //void judgeUpdateGrid();
+    __global__ void updateGrid2D(Box* box, uint* grid, float* positionMemory, float* x);
+    void judgeUpdateGrid(Box* box);
     
     //interactions
     /*__global__ void culcInteraction2D(
         Box* box,
         float* force_dev,
-        uint* map_dev, 
+        uint* grid_dev, 
         uint* pattern_dev, 
         float* diam_dev,
         float* x_dev);
@@ -69,7 +64,7 @@ namespace PhysPeach{
     /*__global__ void culcHarmonicInteraction2D(
         float* force_dev, 
         Box* box,
-        uint* map_dev, 
+        uint* grid_dev, 
         uint* pattern_dev,
         float* diam_dev, 
         float* x_dev);

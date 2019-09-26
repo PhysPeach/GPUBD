@@ -33,6 +33,7 @@ int main(){
 
     Box box;
     makeBox(&box);
+    initBox(&box,1);
     killBox(&box);
 
     std::cout << "makeBox done!" << std::endl;
