@@ -1,9 +1,8 @@
 #include <iostream>
 #include <fstream>
 
-#include "../h/MT.h"
-
 #include "../h/particles.cuh"
+#include "../h/box.cuh"
 #include "../h/parameters.cuh"
 
 unsigned int IT;
@@ -32,36 +31,10 @@ int main(){
     std::cout << "ID = [" << IDs << ", " << IDe << "]" << std::endl;
     std::cout << "--------------" << std::endl;
 
-    Particles p;
-    makeParticles(&p);
-    initParticles(&p, 10.0);
+    Box box;
+    makeBox(&box);
+    killBox(&box);
 
-    //test initParticles
-    std::ofstream checkInitParticles("testData/checkInitParticles.data");
-    
-    cudaMemcpy(p.diam, p.diam_dev, N * sizeof(float), cudaMemcpyDeviceToHost);
-    cudaMemcpy(p.x, p.x_dev, D * N * sizeof(float), cudaMemcpyDeviceToHost);
-    cudaMemcpy(p.v, p.v_dev, D * N * sizeof(float), cudaMemcpyDeviceToHost);
-
-    for(unsigned int n = 0; n < N; n++){
-        checkInitParticles << p.diam[n] << " ";
-    }
-    checkInitParticles << std::endl;
-
-    for(unsigned int n = 0; n < N; n++){
-        for(char d = 0; d < D; d++){
-            checkInitParticles << p.x[d * N + n] << " ";
-        }
-        for(char d = 0; d < D; d++){
-            checkInitParticles << p.v[d * N + n] << " ";
-        }
-        checkInitParticles << std::endl;
-    }
-
-    checkInitParticles.close();
-    
-    killParticles(&p);
-
-    std::cout << "makeParticles done!" << std::endl;
+    std::cout << "makeBox done!" << std::endl;
     return 0;
 }

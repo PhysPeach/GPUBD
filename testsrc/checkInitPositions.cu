@@ -6,9 +6,9 @@
 #include "../h/particles.cuh"
 #include "../h/parameters.cuh"
 
-unsigned int IT;
-unsigned int IDs;
-unsigned int IDe;
+uint IT;
+uint IDs;
+uint IDe;
 float tau;
 float Tfin;
 
@@ -39,21 +39,21 @@ int main(){
     //test initParticles
     std::ofstream checkInitPositions("testData/checkInitParticles.data");
     
-    cudaMemcpy(p.diam, p.diam_dev, N * sizeof(float), cudaMemcpyDeviceToHost);
-    cudaMemcpy(p.x, p.x_dev, D * N * sizeof(float), cudaMemcpyDeviceToHost);
-    cudaMemcpy(p.v, p.v_dev, D * N * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(p.diam, p.diam_dev, NP * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(p.x, p.x_dev, D * NP * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(p.v, p.v_dev, D * NP * sizeof(float), cudaMemcpyDeviceToHost);
 
-    for(unsigned int n = 0; n < N; n++){
+    for(uint n = 0; n < NP; n++){
         checkInitPositions << p.diam[n] << " ";
     }
     checkInitPositions << std::endl;
 
-    for(unsigned int n = 0; n < N; n++){
+    for(uint n = 0; n < NP; n++){
         for(char d = 0; d < D; d++){
-            checkInitPositions << p.x[d * N + n] << " ";
+            checkInitPositions << p.x[d * NP + n] << " ";
         }
         for(char d = 0; d < D; d++){
-            checkInitPositions << p.v[d * N + n] << " ";
+            checkInitPositions << p.v[d * NP + n] << " ";
         }
         checkInitPositions << std::endl;
     }

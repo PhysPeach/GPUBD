@@ -19,6 +19,11 @@ namespace PhysPeach{
         float *v_dev;
         curandState *rndState_dev;
         float *force_dev;
+
+        //for setters and getters
+        float *getNK_dev[2], *getNU_dev[2]; //K[D * N], U[N]
+        float* getNvg_dev;
+        float* Nvg_dev;
     };
     void makeParticles(Particles* particles);
     void killParticles(Particles* particles);
