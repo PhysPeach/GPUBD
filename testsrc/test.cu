@@ -31,9 +31,10 @@ int main(){
     std::cout << "ID = [" << IDs << ", " << IDe << "]" << std::endl;
     std::cout << "--------------" << std::endl;
 
-    //Particles p;
-    //makeParticles(&p);
-    //killParticles(&p);
+    Particles p;
+    makeParticles(&p);
+    killParticles(&p);
 
+    std::cout << "makeParticles done!" << std::endl;
     return 0;
 }
