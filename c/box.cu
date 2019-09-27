@@ -124,7 +124,7 @@ namespace PhysPeach{
         return;
     }
     //for grid
-    __global__ void updateGrid2D(Box* box, unsigned int* grid, float* positionMemory, float* x){
+    __global__ void updateGrid2D(Box* box, uint* grid, float* positionMemory, float* x){
         unsigned int n_global = blockIdx.x * blockDim.x + threadIdx.x;
 
         float bL = box->L;
@@ -146,6 +146,16 @@ namespace PhysPeach{
             grid[n_m + counter] = n;
             positionMemory[n] = x[n];
             positionMemory[NP + n] = x[NP + n];
+        }
+    }
+
+    void judgeUpdateGrid(Box* box){
+    
+        checkGrid<<<NB,NT>>>(box->needUpdate_dev, box->L, box->p.x_dev, box->positionMemory);
+        unsigned int needUpdate;
+        cudaMemcpy(&needUpdate, box->needUpdate_dev, sizeof(uint), cudaMemcpyDeviceToHost);
+        if(needUpdate){
+            updateGrid2D<<<NB,NT>>>(box, box->grid_dev, box->positionMemory_dev, box->p.x_dev);
         }
     }
 }
