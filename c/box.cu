@@ -125,21 +125,21 @@ namespace PhysPeach{
     }
     //for grid
     __global__ void updateGrid2D(Box* box, uint* grid, float* positionMemory, float* x){
-        unsigned int n_global = blockIdx.x * blockDim.x + threadIdx.x;
+        uint n_global = blockIdx.x * blockDim.x + threadIdx.x;
 
         float bL = box->L;
         uint bM = box->M;
         uint bEpM = box->EpM;
         float rc = bL/(float)bM;
     
-        unsigned int gridPos[D];
-        unsigned int gridAddress;//[0, M * M - 1]
-        unsigned int n_m;
-        unsigned int counter;
+        uint gridPos[D];
+        uint gridAddress;//[0, M * M - 1]
+        uint n_m;
+        uint counter;
     
-        for(unsigned int n = n_global; n < NP; n += NB* NT){
-            gridPos[0] = (unsigned int)x[n]/rc;
-            gridPos[1] = (unsigned int)x[NP+n]/rc;
+        for(uint n = n_global; n < NP; n += NB* NT){
+            gridPos[0] = (uint)x[n]/rc;
+            gridPos[1] = (uint)x[NP+n]/rc;
             gridAddress = gridPos[1] * bM + gridPos[0];
             n_m = gridAddress * bEpM;
             counter = 1 + atomicAdd(&grid[n_m], 1);
@@ -149,10 +149,44 @@ namespace PhysPeach{
         }
     }
 
+    __global__ void checkGrid(uint* needUpdate, float L, float* x, float* positionMemory){
+        uint i_global = blockIdx.x * blockDim.x + threadIdx.x;
+        uint i_local = threadIdx.x;
+    
+        __shared__ uint update[NT];
+        update[i_local] = 0;
+    
+        float Lh = 0.5*L;
+        float dx2;
+        const float delta_x2 = a0 * a0 / D;
+    
+        for(uint i = i_global; i < D * N; i += NB * NT){
+            dx2 = x[i] - positionMemory[i];
+            if(dx2 > Lh){
+                dx2 -= L;
+            }
+            if(dx2 < -Lh){
+                dx2 += L;
+            }
+            dx2 *= dx2;
+            if(dx2 > delta_x2){
+                update[i_local] = 1;
+            }
+        }
+        __syncthreads();
+        //only for i_local = 0
+        if(!i_local){
+            uint foo = 0;
+            for(uint i = 0; i < NT; i++){
+                foo += update[i];
+            }
+            atomicAdd(needUpdate, foo);
+        }
+    }
     void judgeUpdateGrid(Box* box){
     
         checkGrid<<<NB,NT>>>(box->needUpdate_dev, box->L, box->p.x_dev, box->positionMemory);
-        unsigned int needUpdate;
+        uint needUpdate;
         cudaMemcpy(&needUpdate, box->needUpdate_dev, sizeof(uint), cudaMemcpyDeviceToHost);
         if(needUpdate){
             updateGrid2D<<<NB,NT>>>(box, box->grid_dev, box->positionMemory_dev, box->p.x_dev);
