@@ -68,7 +68,6 @@ namespace PhysPeach{
         }
         rndState[i_global] = localState;
     }
-
     void scatterParticles(Particles* p, float L){
         //avoiding super overraps
         float Ltmp = L - 0.5 * (a1+a2);
