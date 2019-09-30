@@ -1,6 +1,14 @@
 #include "../h/box.cuh"
 
 namespace PhysPeach{
+    //generalFuncs in Box
+    __global__ void setValueZero(uint* x, uint Num){
+        uint i_global = blockIdx.x * blockDim.x + threadIdx.x;
+        for(uint i = i_global; i < Num; i += NB * NT){
+            x[Num] = 0;
+        }
+    }
+
     void makeGridPattern2D(Box* box){
         uint M_NG = box->M/NG + 0.9;
         uint pattern[M_NG*M_NG];
@@ -40,7 +48,7 @@ namespace PhysPeach{
             box->M = 3;
         }
         uint M2 = box->M * box->M;
-        box->EpM = (uint)1.8 * DNSTY * (4.3*a0)*(4.3*a0); //EpM ~ DNSTY * 4.3a0^2 ~ DNSTY * 26.6
+        box->EpM = (uint)(1.4 * (float)NP /(float)M2); //EpM ~ NP/M^D
         cudaMalloc((void**)&box->needUpdate_dev, sizeof(uint));
         cudaMalloc((void**)&box->positionMemory_dev, D * NP *sizeof(float));
         cudaMalloc((void**)&box->grid_dev, M2 * box->EpM * sizeof(uint));
@@ -55,6 +63,7 @@ namespace PhysPeach{
         
         return;
     }
+
     void killBox(Box* box){
         //for list
         cudaFree(box->needUpdate_dev);
@@ -80,6 +89,7 @@ namespace PhysPeach{
         }
         box->positionFile << std::endl << std::endl;
         //set posMem and list
+        setValueZero<<<NB,NT>>>(box->grid_dev, box->M * box->M * box->EpM);
         updateGrid2D<<<NB,NT>>>(box, box->grid_dev, box->positionMemory_dev, box->p.x_dev);
         //remove overraps by using harmonic potential
         uint Nt = 20. / box->dt;
@@ -136,10 +146,10 @@ namespace PhysPeach{
         uint gridAddress;//[0, M * M - 1]
         uint n_m;
         uint counter;
-    
-        for(uint n = n_global; n < NP; n += NB* NT){
-            gridPos[0] = (uint)x[n]/rc;
-            gridPos[1] = (uint)x[NP+n]/rc;
+        //init Grid
+        for(uint n = n_global; n < NP; n += NB * NT){
+            gridPos[0] = (uint)(x[n]/rc);
+            gridPos[1] = (uint)(x[NP+n]/rc);
             gridAddress = gridPos[1] * bM + gridPos[0];
             n_m = gridAddress * bEpM;
             counter = 1 + atomicAdd(&grid[n_m], 1);
@@ -160,7 +170,7 @@ namespace PhysPeach{
         float dx2;
         const float delta_x2 = a0 * a0 / D;
     
-        for(uint i = i_global; i < D * N; i += NB * NT){
+        for(uint i = i_global; i < D * NP; i += NB * NT){
             dx2 = x[i] - positionMemory[i];
             if(dx2 > Lh){
                 dx2 -= L;
@@ -185,7 +195,7 @@ namespace PhysPeach{
     }
     void judgeUpdateGrid(Box* box){
     
-        checkGrid<<<NB,NT>>>(box->needUpdate_dev, box->L, box->p.x_dev, box->positionMemory);
+        checkGrid<<<NB,NT>>>(box->needUpdate_dev, box->L, box->p.x_dev, box->positionMemory_dev);
         uint needUpdate;
         cudaMemcpy(&needUpdate, box->needUpdate_dev, sizeof(uint), cudaMemcpyDeviceToHost);
         if(needUpdate){

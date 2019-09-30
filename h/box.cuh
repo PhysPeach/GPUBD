@@ -26,9 +26,9 @@ namespace PhysPeach{
     
         //cell list
         uint M;
-        uint EpM;//Num of Elements per M
+        uint EpM;//(Num of Elements per M) - 1
         uint* needUpdate_dev;
-        uint* grid_dev;//[M2][EpM] ->[m*EpM + epm]
+        uint* grid_dev;//[M2][EpM] ->[m2* EpM + epm] epm = 0->NofE
         float* positionMemory_dev;
     
         //recorder
