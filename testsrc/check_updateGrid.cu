@@ -1,4 +1,5 @@
 #include <iostream>
+#include <stdlib.h>
 #include <fstream>
 
 #include "../h/particles.cuh"
@@ -34,8 +35,29 @@ int main(){
     Box box;
     makeBox(&box);
     initBox(&box,1);
+    //checkUpdateGrid
+    std::cout << "check_updateGrid" << std::endl;
+    std::ofstream check_updateGrid("testData/check_updateGrid.data");
+
+    uint *grid;
+    uint M2 = box.M * box.M;
+    uint bEpM = box.EpM;
+    std::cout << "M2 = " << M2 << std::endl;
+    std::cout << "EpM = " << bEpM << std::endl;
+    grid = (uint*)malloc(M2 * bEpM * sizeof(uint));
+    cudaMemcpy(grid, box.grid_dev, M2 * bEpM * sizeof(uint), cudaMemcpyDeviceToHost);
+    for(uint i = 0; i < M2; i++){
+        for(uint c = 0; c < bEpM; c++){
+            check_updateGrid << "i: " << i << ", c: " << c << " , " << grid[i*box.EpM+c] << std::endl;
+        }
+        check_updateGrid << std::endl;
+    }
+
+    free(grid);
+    check_updateGrid.close();
+
     killBox(&box);
 
-    std::cout << "makeBox done!" << std::endl;
+    std::cout << "test done!" << std::endl;
     return 0;
 }
