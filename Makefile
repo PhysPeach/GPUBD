@@ -1,4 +1,4 @@
-test: testsrc/test.o c/particles.o c/box.o c/MT.o
+test: testsrc/test.o c/particles.o c/box.o c/grids.o c/MT.o
 	nvcc -arch=sm_60 -o $@ $^
 
 %.o: %.cu h
