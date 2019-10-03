@@ -2,9 +2,9 @@
 
 namespace PhysPeach{
     void makeGrid(Grid* grid, float L){
-        ////define M ~ L/Rcell: Rcell ~ 5a
+        //define M ~ L/Rcell: Rcell ~ 5a
         grid->M = (uint)(L/(4.8*a0));
-        ////for small system
+        //for small system
         if(grid->M < 3){
             grid->M = 3;
         }
@@ -25,6 +25,7 @@ namespace PhysPeach{
     void killGrid(Grid* grid){
         cudaFree(grid->refCell_dev);
         cudaFree(grid->cell_dev);
+        return;
     }
     void makeCellPattern2D(Grid* grid){
         uint M_NG = grid->M/NG + 0.9;
