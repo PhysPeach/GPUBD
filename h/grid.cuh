@@ -16,6 +16,7 @@ namespace PhysPeach{
     };
     void makeGrid(Grid* grid, float L);
     void killGrid(Grid* grid);
-    void makeCellPattern2D(Grid* grid)
+    void makeCellPattern2D(Grid* grid);
+    __global__ void updateGrid2D(Grid grid, uint* cell, float* x);
 }
 #endif

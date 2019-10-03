@@ -45,4 +45,25 @@ namespace PhysPeach{
         cudaMemcpy(grid->refCell_dev, pattern, M_NG * M_NG * sizeof(uint), cudaMemcpyHostToDevice);
         return;
     }
+    __global__ void updateGrid2D(Grid grid, uint* cell, float* x){
+        uint n_global = blockIdx.x * blockDim.x + threadIdx.x;
+
+        uint M = grid.M;
+        uint EpM = grid.EpM;
+        float rc = grid.rc;
+    
+        uint cellPos[D];
+        uint cellAddress;//[0, M * M - 1]
+        uint n_m;
+        uint counter;
+
+        for(uint n = n_global; n < NP; n += NB * NT){
+            cellPos[0] = (uint)(x[n]/rc);
+            cellPos[1] = (uint)(x[NP+n]/rc);
+            cellAddress = cellPos[1] * M + cellPos[0];
+            n_m = cellAddress * EpM;
+            counter = 1 + atomicAdd(&cell[n_m], 1);
+            cell[n_m + counter] = n;
+        }
+    }
 }
