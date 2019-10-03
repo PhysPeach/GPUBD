@@ -1,7 +1,8 @@
 #file
+*.o
 
 #directory
-
+testData
 
 #wildcard
 *.log
