@@ -69,10 +69,20 @@ namespace PhysPeach{
         rndState[i_global] = localState;
     }
     void scatterParticles(Particles* p, float L){
-        //avoiding super overraps
-        float Ltmp = L - 0.5 * (a1+a2);
-
         //set positions by uniform random destribution
-        setRndParticleStates<<<NB,NT>>>(Ltmp, p->diam_dev, p->x_dev, p->v_dev, p->rndState_dev);
+        setRndParticleStates<<<NB,NT>>>(L, p->diam_dev, p->x_dev, p->v_dev, p->rndState_dev);
+        checkPeriodic<<<NB,NT>>>(L, p->x_dev);
+    }
+    __global__ void checkPeriodic(float L, float *x){
+        uint n_global = blockIdx.x * blockDim.x + threadIdx.x;
+
+        for(uint n = n_global; n < NP; n += NB*NT){
+            if(x[n] > L){
+                x[n] -= L;
+            }
+            else if (x[n] < 0){
+                x[n] += L;
+            }
+        }
     }
 }

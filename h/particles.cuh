@@ -28,6 +28,7 @@ namespace PhysPeach{
     void makeParticles(Particles* particles);
     void killParticles(Particles* particles);
     void scatterParticles(Particles* particles, float L);
+    __global__ void checkPeriodic(float L, float *x);
 
     //inline float getNK(Particles* particles);
     
