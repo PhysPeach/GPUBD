@@ -46,7 +46,7 @@ namespace PhysPeach{
     void initBox(Box* box, uint ID);
     
     //cell list
-    __global__ void updateGrid2D(Box* box, uint* grid, float* positionMemory, float* x);
+    __global__ void updateGrid2D(uint* grid, float* positionMemory, float L, uint M, uint EpM, float* x);
     void judgeUpdateGrid(Box* box);
     
     //interactions
