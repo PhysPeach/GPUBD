@@ -1,13 +1,6 @@
 #include "../h/box.cuh"
 
 namespace PhysPeach{
-    //generalFuncs in Box
-    __global__ void setValueZero(uint* x, uint Num){
-        uint i_global = blockIdx.x * blockDim.x + threadIdx.x;
-        for(uint i = i_global; i < Num; i += NB * NT){
-            x[Num] = 0;
-        }
-    }
     void makeBox(Box* box){
 
         makeParticles(&box->p);
@@ -46,7 +39,7 @@ namespace PhysPeach{
         }
         box->positionFile << std::endl << std::endl;
         //set posMem and list
-        setValueZero<<<NB,NT>>>(box->g.cell_dev, box->g.M * box->g.M * box->g.EpM);
+        setIntVecZero<<<NB,NT>>>(box->g.cell_dev, box->g.M * box->g.M * box->g.EpM);
         updateGrid2D<<<NB,NT>>>(box->g, box->g.cell_dev, box->p.x_dev);
         //remove overraps by using harmonic potential
         uint Nt = 20. / box->dt;

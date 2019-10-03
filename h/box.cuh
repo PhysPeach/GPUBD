@@ -7,6 +7,7 @@
 
 #include <math.h>
 
+#include "generalFuncs.cuh"
 #include "parameters.cuh"
 #include "particles.cuh"
 #include "grid.cuh"

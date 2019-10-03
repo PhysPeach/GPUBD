@@ -1,6 +1,7 @@
 #ifndef GRID_CUH
 #define GRID_CUH
 #include <cuda.h>
+#include "generalFuncs.cuh"
 #include "parameters.cuh"
 namespace PhysPeach{
     struct Grid{
