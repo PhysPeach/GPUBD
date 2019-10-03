@@ -9,6 +9,7 @@
 
 #include "parameters.cuh"
 #include "particles.cuh"
+#include "grid.cuh"
 
 namespace PhysPeach{
     struct Box{
@@ -21,15 +22,8 @@ namespace PhysPeach{
         float L; //length of box
         Particles p;
     
-        //interactions
-        uint* refGrid_dev;
-    
         //cell list
-        uint M;
-        uint EpM;//(Num of Elements per M) - 1
-        uint* needUpdate_dev;
-        uint* grid_dev;//[M2][EpM] ->[m2* EpM + epm] epm = 0->NofE
-        float* positionMemory_dev;
+        Grid g;
     
         //recorder
         std::ofstream positionFile;
@@ -44,10 +38,6 @@ namespace PhysPeach{
     void makeBox(Box* box);
     void killBox(Box* box);
     void initBox(Box* box, uint ID);
-    
-    //cell list
-    __global__ void updateGrid2D(uint* grid, float* positionMemory, float L, uint M, uint EpM, float* x);
-    void judgeUpdateGrid(Box* box);
     
     //interactions
     /*__global__ void culcInteraction2D(
