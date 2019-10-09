@@ -20,11 +20,17 @@ namespace PhysPeach{
         cudaMalloc((void**)&grid->refCell_dev, M_NG * M_NG * sizeof(uint));
         makeCellPattern2D(grid);
 
+        //for determine updateFreq
+        cudaMalloc((void**)&grid->vmax_dev[0], D * NP * sizeof(float));
+        cudaMalloc((void**)&grid->vmax_dev[1], D * NP * sizeof(float));
+
         return;
     }
     void killGrid(Grid* grid){
         cudaFree(grid->refCell_dev);
         cudaFree(grid->cell_dev);
+        cudaFree(grid->vmax_dev[0]);
+        cudaFree(grid->vmax_dev[1]);
         return;
     }
     void makeCellPattern2D(Grid* grid){
@@ -66,5 +72,19 @@ namespace PhysPeach{
             counter = 1 + atomicAdd(&cell[n_m], 1);
             cell[n_m + counter] = n;
         }
+    }
+    void setUpdateFreq(Grid* grid, double dt, float *v){
+        float vmax;
+        uint flip = 0;
+        uint l = D * NP;
+        reductionMax<<<NB,NT>>>(grid->vmax_dev[0], v, l);
+        l = (l + NT-1)/NT;
+        while(l > 1){
+            flip = !flip;
+            reductionMax<<<NB,NT>>>(grid->vmax_dev[flip], grid->vmax_dev[!flip], l);
+            l = (l + NT-1)/NT;
+        }
+        cudaMemcpy(&vmax, grid->vmax_dev[flip], sizeof(float), cudaMemcpyDeviceToHost);
+        grid->updateFreq = a0/(vmax * dt);
     }
 }
