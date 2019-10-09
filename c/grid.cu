@@ -11,6 +11,7 @@ namespace PhysPeach{
         grid->rc = L/(float)grid->M;
         uint M2 = grid->M * grid->M;
         grid->EpM = (uint)(1.5 * (float)NP /(float)M2); //EpM ~ NP/M^D
+        grid->updateFreq = 1;
 
         cudaMalloc((void**)&grid->cell_dev, M2 * grid->EpM * sizeof(uint));
 
@@ -85,6 +86,12 @@ namespace PhysPeach{
             l = (l + NT-1)/NT;
         }
         cudaMemcpy(&vmax, grid->vmax_dev[flip], sizeof(float), cudaMemcpyDeviceToHost);
-        grid->updateFreq = a0/(vmax * dt);
+        if(vmax > dt){
+            grid->updateFreq = a0/(vmax * dt);
+        }
+        else{
+            grid->updateFreq = 1;
+        }
+        return;
     }
 }
