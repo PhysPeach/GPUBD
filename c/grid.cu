@@ -94,4 +94,13 @@ namespace PhysPeach{
         }
         return;
     }
+    void checkUpdate(Grid* grid, double dt, float* x, float* v){
+        static uint counter = 0;
+        counter++;
+        if(counter >= grid->updateFreq){
+            updateGrid2D<<<NB,NT>>>(*grid, grid->cell_dev, x);
+            setUpdateFreq(grid, dt, v);
+        }
+        return;
+    }
 }
