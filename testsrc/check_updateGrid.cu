@@ -45,15 +45,15 @@ int main(){
     std::cout << "M2 = " << M2 << std::endl;
     std::cout << "EpM = " << bEpM << std::endl;
     grid = (uint*)malloc(M2 * bEpM * sizeof(uint));
-    cudaMemcpy(grid, box.grid_dev, M2 * bEpM * sizeof(uint), cudaMemcpyDeviceToHost);
+    cudaMemcpy(cell, box.g.cell_dev, M2 * bEpM * sizeof(uint), cudaMemcpyDeviceToHost);
     for(uint i = 0; i < M2; i++){
         for(uint c = 0; c < bEpM; c++){
-            check_updateGrid << "i: " << i << ", c: " << c << " , " << grid[i*box.EpM+c] << std::endl;
+            check_updateGrid << "i: " << i << ", c: " << c << " , " << cell[i*box.EpM+c] << std::endl;
         }
         check_updateGrid << std::endl;
     }
 
-    free(grid);
+    free(cell);
     check_updateGrid.close();
 
     killBox(&box);
