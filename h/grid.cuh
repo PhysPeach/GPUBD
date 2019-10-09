@@ -21,6 +21,6 @@ namespace PhysPeach{
     void makeCellPattern2D(Grid* grid);
     __global__ void updateGrid2D(Grid grid, uint* cell, float* x);
     void setUpdateFreq(Grid* grid, double dt, float *v);
-    void checkUpdate(Grid* grid, double dt, float* x, float* v);
+    inline void checkUpdate(Grid* grid, double dt, float* x, float* v);
 }
 #endif

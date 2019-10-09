@@ -72,6 +72,7 @@ namespace PhysPeach{
         //set positions by uniform random destribution
         setRndParticleStates<<<NB,NT>>>(L, p->diam_dev, p->x_dev, p->v_dev, p->rndState_dev);
         checkPeriodic<<<NB,NT>>>(L, p->x_dev);
+        return;
     }
     __global__ void checkPeriodic(float L, float *x){
         uint n_global = blockIdx.x * blockDim.x + threadIdx.x;
