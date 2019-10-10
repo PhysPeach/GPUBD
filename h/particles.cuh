@@ -22,8 +22,7 @@ namespace PhysPeach{
 
         //for setters and getters
         float *getNK_dev[2], *getNU_dev[2]; //K[D * N], U[N]
-        float* getNvg_dev;
-        float* Nvg_dev;
+        float* Nvg_dev[D][2];
     };
     void makeParticles(Particles* particles);
     void killParticles(Particles* particles);
@@ -33,11 +32,7 @@ namespace PhysPeach{
     //time evolutions
     __global__ void vEvoBD(float *v, float themalFuctor, float *force, curandState *state);
     __global__ void xEvo(float *x, double dt, float L, float *v);
-
-    //inline float getNK(Particles* particles);
-    
-    //inline void setvgzero2D(Particles* particles);
-
+    inline void removevg(Particles* p);
 }
 
 #endif

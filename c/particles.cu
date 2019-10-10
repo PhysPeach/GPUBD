@@ -24,8 +24,10 @@ namespace PhysPeach{
         cudaMalloc((void**)&p->getNK_dev[1], D * NP * sizeof(float));
         cudaMalloc((void**)&p->getNU_dev[0], NP * sizeof(float));
         cudaMalloc((void**)&p->getNU_dev[1], NP * sizeof(float));
-        cudaMalloc((void**)&p->getNvg_dev, D * NP * sizeof(float));
-        cudaMalloc((void**)&p->Nvg_dev, D * sizeof(float)); 
+        for(uint i = 0; i< D; i++){
+            cudaMalloc((void**)&p->Nvg_dev[i][0], D * NP * sizeof(float));
+            cudaMalloc((void**)&p->Nvg_dev[i][1], D * NP * sizeof(float));
+        }
 
         //set rnd seed
         init_genrand_kernel<<<NB,NT>>>((unsigned long long)genrand_int32(),p->rndState_dev);
@@ -47,8 +49,10 @@ namespace PhysPeach{
         cudaFree(p->getNK_dev[1]);
         cudaFree(p->getNU_dev[0]);
         cudaFree(p->getNU_dev[1]);
-        cudaFree(p->getNvg_dev);
-        cudaFree(p->Nvg_dev);
+        for(uint i = 0; i< D; i++){
+            cudaFree(p->Nvg_dev[i][0]);
+            cudaFree(p->Nvg_dev[i][1]);
+        }
         return;
     }
 
@@ -106,5 +110,33 @@ namespace PhysPeach{
                 x[i] += L;
             }
         }
+    }
+    __global__ void glo_removevg(float *v, float* Nvg){
+        uint i_global = blockIdx.x * blockDim.x + threadIdx.x;
+
+        float vg_local = Nvg[0]/NP;
+        for(uint i = i_global; i < NP; i += NB * NT){
+            v[i] -= vg_local;
+        }
+    }
+    inline void removevg(Particles* p){
+        //summations
+        uint flip = 0;
+        uint l = NP;
+        for(uint d = 0; d < D; d++){
+            reductionSum<<<NB,NT>>>(p->Nvg_dev[d][0], &p->v_dev[d*NP], l);
+        }
+        l = (l + NT-1)/NT;
+        while(l > 1){
+            flip = !flip;
+            for(uint d = 0; d < D; d++){
+                reductionSum<<<NB,NT>>>(p->Nvg_dev[d][flip], p->Nvg_dev[d][!flip], l);
+            }
+            l = (l + NT-1)/NT;
+        }
+        for(uint d = 0; d < D; d++){
+            glo_removevg(&p->v_dev[d*NP],p->Nvg_dev[d][flip]);
+        }
+        return;
     }
 }
