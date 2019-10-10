@@ -30,12 +30,13 @@ namespace PhysPeach{
     void scatterParticles(Particles* particles, float L);
     __global__ void checkPeriodic(float L, float *x);
 
+    //time evolutions
+    __global__ void vEvoBD(float *v, float themalFuctor, float *force, curandState *state);
+    __global__ void xEvo(float *x, double dt, float L, float *v);
+
     //inline float getNK(Particles* particles);
     
     //inline void setvgzero2D(Particles* particles);
-
-    //__global__ void vDvlpBD(Particles* particles, float *v_dev, Box* box, float *force_dev, curandState *rndState_dev);
-    //__global__ void xDvlp(Particles* float *x_dev, Box* box, float *v_dev);
 
 }
 

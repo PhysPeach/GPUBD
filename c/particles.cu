@@ -86,4 +86,25 @@ namespace PhysPeach{
             }
         }
     }
+
+    //time evolutions
+    __global__ void vEvoBD(float *v, double dt, float themalFuctor, float *force, curandState *state){
+        uint i_global = blockIdx.x * blockDim.x + threadIdx.x;
+        for(int i = i_global; i < D * NP; i += NB*NT){
+            v[i] += dt*(-v[i] + force[i] + thermalFuctor*curand_normal(&state[i]));
+        }
+    }
+    __global__ void xEvo(float *x, double dt, float L, float *v){
+        uint i_global = blockIdx.x * blockDim.x + threadIdx.x;
+        for(int i = i_global; i < D * NP; i += NB*NT){
+            x[i] += dt * v[i];
+            //periodic
+            if(x[i] > L){
+                x[i] -= L;
+            }
+            else if(x[i] < 0){
+                x[i] += L;
+            }
+        }
+    }
 }
