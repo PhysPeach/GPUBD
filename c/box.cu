@@ -1,6 +1,7 @@
 #include "../h/box.cuh"
 
 namespace PhysPeach{
+    //setters and getters
     void makeBox(Box* box){
 
         makeParticles(&box->p);
