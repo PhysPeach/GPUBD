@@ -92,7 +92,7 @@ namespace PhysPeach{
     }
 
     //time evolutions
-    __global__ void vEvoBD(float *v, double dt, float themalFuctor, float *force, curandState *state){
+    __global__ void vEvoBD(float *v, double dt, float thermalFuctor, float *force, curandState *state){
         uint i_global = blockIdx.x * blockDim.x + threadIdx.x;
         for(int i = i_global; i < D * NP; i += NB*NT){
             v[i] += dt*(-v[i] + force[i] + thermalFuctor*curand_normal(&state[i]));
@@ -135,7 +135,7 @@ namespace PhysPeach{
             l = (l + NT-1)/NT;
         }
         for(uint d = 0; d < D; d++){
-            glo_removevg(&p->v_dev[d*NP],p->Nvg_dev[d][flip]);
+            glo_removevg<<<NB,NT>>>(&p->v_dev[d*NP],p->Nvg_dev[d][flip]);
         }
         return;
     }

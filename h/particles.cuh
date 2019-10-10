@@ -5,7 +5,7 @@
 #include <curand_kernel.h>
 
 #include "../h/MT.h"
-
+#include "../h/generalFuncs.cuh"
 #include "../h/parameters.cuh"
 
 namespace PhysPeach{
