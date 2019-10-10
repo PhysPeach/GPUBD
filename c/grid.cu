@@ -16,7 +16,6 @@ namespace PhysPeach{
         cudaMalloc((void**)&grid->cell_dev, M2 * grid->EpM * sizeof(uint));
 
         //for parallel interactions
-        IT = grid->EpM * NG * NG;
         uint M_NG = grid->M/NG + 0.9;
         cudaMalloc((void**)&grid->refCell_dev, M_NG * M_NG * sizeof(uint));
         makeCellPattern2D(grid);

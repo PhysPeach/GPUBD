@@ -8,10 +8,10 @@ typedef  unsigned int uint;
 const uint NT  = 512;
 const uint NB = 8;
 //Numbers of Threads and Blocks for Interactions
-const uint NG  = 2;
+const uint NG  = 4;
 ////IT = NG * NG * EpM: IB = (()0.9+M/NG)sqrt(N/dnsty)/4.3a0
-const uint IB = 9;
-extern uint IT;
+const uint IT = 1024;
+const uint IB = 3;
 
 //--Define scale parameters--
 //Num of particles
