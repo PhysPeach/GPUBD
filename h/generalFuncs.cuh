@@ -8,6 +8,7 @@
 
 namespace PhysPeach{
     __global__ void setIntVecZero(uint* x, uint Num);
+    __global__ void reductionSum(float *out, float *in, uint l);
     __global__ void reductionMax(float *out, float *in, uint l);
 }
 
