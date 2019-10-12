@@ -3,11 +3,7 @@
 namespace PhysPeach{
     void makeGrid(Grid* grid, float L){
         //define M ~ L/Rcell: Rcell ~ 5a
-        grid->M = (uint)(L/(4.8*a0));
-        //for small system
-        if(grid->M < 3){
-            grid->M = 3;
-        }
+        grid->M = SQRT_NUM_OF_CELLS;
         grid->rc = L/(float)grid->M;
         uint M2 = grid->M * grid->M;
         grid->updateFreq = 1;
@@ -18,7 +14,7 @@ namespace PhysPeach{
         cudaMalloc((void**)&grid->refCell_dev, M_NGy * M_NGx * sizeof(uint));
         makeCellPattern2D(grid);
 
-        grid->EpM = IT/(M_NGy*M_NGx);
+        EpM = EPM;
         cudaMalloc((void**)&grid->cell_dev, M2 * grid->EpM * sizeof(uint));
 
         //for determine updateFreq
@@ -39,15 +35,14 @@ namespace PhysPeach{
         uint M_NGy = grid->M/NGy + 0.9;
         uint pattern[M_NGy*M_NGx];
 
-        uint cellAddresss;
         uint Pos[D];
         for(uint i = 0; i < M_NGx*M_NGy; i++){
             Pos[1] = i / M_NGx;
             Pos[0] = i - Pos[1] * M_NGx;
 
-            pattern[i] = Pos[1] * NG_y * M + Pos[0] * NG_x;
+            pattern[i] = Pos[1] * NGy * grid->M + Pos[0] * NGx;
         }
-        cudaMemcpy(grid->refCell_dev, pattern, M_NG * M_NG * sizeof(uint), cudaMemcpyHostToDevice);
+        cudaMemcpy(grid->refCell_dev, pattern, M_NGx * M_NGy * sizeof(uint), cudaMemcpyHostToDevice);
         return;
     }
     __global__ void updateGrid2D(Grid grid, uint* cell, float* x){
