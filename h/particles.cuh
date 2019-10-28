@@ -30,9 +30,9 @@ namespace PhysPeach{
     __global__ void checkPeriodic(float L, float *x);
 
     //time evolutions
-    __global__ void vEvoBD(float *v, float themalFuctor, float *force, curandState *state);
+    __global__ void vEvoBD(float *v, double dt, float themalFuctor, float *force, curandState *state);
     __global__ void xEvo(float *x, double dt, float L, float *v);
-    inline void removevg(Particles* p);
+    void removevg2D(Particles* p);
 }
 
 #endif

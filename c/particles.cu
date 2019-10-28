@@ -119,24 +119,22 @@ namespace PhysPeach{
             v[i] -= vg_local;
         }
     }
-    inline void removevg(Particles* p){
+    void removevg2D(Particles* p){
         //summations
         uint flip = 0;
         uint l = NP;
-        for(uint d = 0; d < D; d++){
-            reductionSum<<<NB,NT>>>(p->Nvg_dev[d][0], &p->v_dev[d*NP], l);
-        }
+        reductionSum<<<NB,NT>>>(p->Nvg_dev[0][0], &p->v_dev[0], l);
+        reductionSum<<<NB,NT>>>(p->Nvg_dev[1][0], &p->v_dev[NP], l);
         l = (l + NT-1)/NT;
         while(l > 1){
             flip = !flip;
-            for(uint d = 0; d < D; d++){
-                reductionSum<<<NB,NT>>>(p->Nvg_dev[d][flip], p->Nvg_dev[d][!flip], l);
-            }
+            reductionSum<<<NB,NT>>>(p->Nvg_dev[0][flip], p->Nvg_dev[0][!flip], l);
+            reductionSum<<<NB,NT>>>(p->Nvg_dev[1][flip], p->Nvg_dev[1][!flip], l);
             l = (l + NT-1)/NT;
         }
-        for(uint d = 0; d < D; d++){
-            glo_removevg<<<NB,NT>>>(&p->v_dev[d*NP],p->Nvg_dev[d][flip]);
-        }
+        glo_removevg<<<NB,NT>>>(&p->v_dev[0],p->Nvg_dev[0][flip]);
+        glo_removevg<<<NB,NT>>>(&p->v_dev[NP],p->Nvg_dev[1][flip]);
+        
         return;
     }
 }
