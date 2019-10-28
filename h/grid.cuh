@@ -22,7 +22,7 @@ namespace PhysPeach{
     __global__ void updateGrid2D(Grid grid, uint* cell, float* x);
     void setUpdateFreq(Grid* grid, double dt, float *v);
     void checkUpdate(Grid* grid, double dt, float* x, float* v);
-    __global__ void culcHarmonicInteractions2D(
+    __global__ void culcHarmonicFint2D(
         Grid g, 
         uint *refCell, 
         uint *cell, 

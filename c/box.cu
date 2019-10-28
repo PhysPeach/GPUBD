@@ -44,10 +44,11 @@ namespace PhysPeach{
         updateGrid2D<<<NB,NT>>>(box->g, box->g.cell_dev, box->p.x_dev);
         //remove overraps by using harmonic potential
         uint Nt = 20. / box->dt;
-        /*for(int nt = 0; nt < Nt; nt++){
-            tHarmonicDvlp();
-            judgeUpdateGrid();
-        }*/
+        Nt = 1;
+        for(int nt = 0; nt < Nt; nt++){
+            harmonicEvoBox(box);
+            checkUpdate(&box->g, box->dt, box->p.x_dev, box->p.v_dev);
+        }
         
         box->logFile << "-> SIP Done!" << std::endl;
         return;
@@ -87,7 +88,15 @@ namespace PhysPeach{
 
     //time evolution
     inline void harmonicEvoBox(Box* box){
-        //culcHarmonicInteractions
+        culcHarmonicFint2D<<<NB,NT>>>(
+            box->g, 
+            box->g.refCell_dev, 
+            box->g.cell_dev, 
+            box->p.force_dev, 
+            box->L, 
+            box->p.diam_dev, 
+            box->p.x_dev
+        );
         //vDvlpBD
         //setvgzero2D
         //xDvlp

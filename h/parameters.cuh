@@ -25,7 +25,6 @@ const uint NGy = 3;
 const uint IT = EPM * NGx * NGy;
 const uint IB = 2;
 
-
 //--Define scale parameters--
 //Numbers of initial condition
 extern uint IDs;
