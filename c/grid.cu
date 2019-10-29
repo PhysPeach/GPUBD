@@ -102,9 +102,12 @@ namespace PhysPeach{
         static uint counter = 0;
         counter++;
         if(counter >= grid->updateFreq){
+            //debug
+            std::cout << "update! c = " << counter << std::endl;
             setIntVecZero<<<NB,NT>>>(grid->cell_dev, grid->M * grid->M * grid->EpM);
             updateGrid2D<<<NB,NT>>>(*grid, grid->cell_dev, x);
             setUpdateFreq(grid, dt, v);
+            counter = 0;
         }
         return;
     }
@@ -159,8 +162,8 @@ namespace PhysPeach{
                     for(uint k = 1; k <=NofP; k++){
                         j = cell[nm+k];
                         if(i!=j){
-                            xij[0] = x[i] - x[j];
-                            xij[1] = x[NP+i] - x[NP+j];
+                            xij[0] = x[j] - x[i];
+                            xij[1] = x[NP+j] - x[NP+i];
                             if(xij[0] > Lh){xij[0] -= L;}
                             if(xij[1] > Lh){xij[1] -= L;}
                             if(xij[0] < -Lh){xij[0] += L;}
