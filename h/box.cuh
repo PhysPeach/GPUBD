@@ -39,6 +39,10 @@ namespace PhysPeach{
     void makeBox(Box* box);
     void killBox(Box* box);
     void initBox(Box* box, uint ID);
+
+    //time evolution
+    inline void harmonicEvoBox(Box* box);
+    inline void tEvoBox(Box* box);
     
     //interactions
     /*__global__ void culcInteraction2D(
@@ -50,7 +54,6 @@ namespace PhysPeach{
         float* x_dev);
     */
     //time evolution
-    //inline void tDvlpBD(Box* box);
     
     /*__global__ void culcHarmonicInteraction2D(
         float* force_dev, 
@@ -60,7 +63,6 @@ namespace PhysPeach{
         float* diam_dev, 
         float* x_dev);
     */
-    //inline void tHarmonicDvlp(Box* box);
     
     //equilibrations
     //void coolSys(double Ttmp, double tcool);

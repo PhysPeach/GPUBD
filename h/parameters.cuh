@@ -3,19 +3,29 @@
 
 typedef  unsigned int uint;
 
-//--Define device parameters--
+//--Settings--
 //Numbers of Threads and Blocks for general use
-const uint NT  = 512;
-const uint NB = 8;
+const uint NT  = 1024;
+const uint NB = 2;
+
+//Num of Particles
+const uint NP = 1024;
+//dimentions , density of box(V = N / Density)
+const uint D = 2;
+const float DNSTY = 0.8;
+
+//M = sqrt(Num of Cells)
+const uint SQRT_NUM_OF_CELLS = 6;
+//Elements Num per Cells
+const uint EPM = 56;
+
 //Numbers of Threads and Blocks for Interactions
-const uint NG  = 2;
-////IT = NG * NG * EpM: IB = (()0.9+M/NG)sqrt(N/dnsty)/4.3a0
-const uint IB = 9;
-extern uint IT;
+const uint NGx = 6;
+const uint NGy = 3;
+const uint IT = EPM * NGx * NGy;
+const uint IB = 2;
 
 //--Define scale parameters--
-//Num of particles
-const uint NP = 1024;
 //Numbers of initial condition
 extern uint IDs;
 extern uint IDe;
@@ -29,16 +39,10 @@ const float dt_BD = 0.003;
 const float dt_MD = 0.001;
 extern float tau;
 
-//dimentions
-const uint D = 2;
-
 //particles diameters
 const float a0 = 1.2; //(a1+a2)/2
 const float a1 = 1.0;
 const float a2 = 1.4;
-
-//density of particles(V = N / Density)
-const float DNSTY = 0.8;
 
 //friction parameter: (ZT/m)sqrt(m*a^2/ep)
 //ZT = 1.0;

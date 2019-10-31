@@ -5,7 +5,7 @@
 #include <curand_kernel.h>
 
 #include "../h/MT.h"
-
+#include "../h/generalFuncs.cuh"
 #include "../h/parameters.cuh"
 
 namespace PhysPeach{
@@ -22,21 +22,17 @@ namespace PhysPeach{
 
         //for setters and getters
         float *getNK_dev[2], *getNU_dev[2]; //K[D * N], U[N]
-        float* getNvg_dev;
-        float* Nvg_dev;
+        float* Nvg_dev[D][2];
     };
     void makeParticles(Particles* particles);
     void killParticles(Particles* particles);
     void scatterParticles(Particles* particles, float L);
     __global__ void checkPeriodic(float L, float *x);
 
-    //inline float getNK(Particles* particles);
-    
-    //inline void setvgzero2D(Particles* particles);
-
-    //__global__ void vDvlpBD(Particles* particles, float *v_dev, Box* box, float *force_dev, curandState *rndState_dev);
-    //__global__ void xDvlp(Particles* float *x_dev, Box* box, float *v_dev);
-
+    //time evolutions
+    __global__ void vEvoBD(float *v, double dt, float themalFuctor, float *force, curandState *state);
+    __global__ void xEvo(float *x, double dt, float L, float *v);
+    void removevg2D(Particles* p);
 }
 
 #endif

@@ -24,8 +24,10 @@ namespace PhysPeach{
         cudaMalloc((void**)&p->getNK_dev[1], D * NP * sizeof(float));
         cudaMalloc((void**)&p->getNU_dev[0], NP * sizeof(float));
         cudaMalloc((void**)&p->getNU_dev[1], NP * sizeof(float));
-        cudaMalloc((void**)&p->getNvg_dev, D * NP * sizeof(float));
-        cudaMalloc((void**)&p->Nvg_dev, D * sizeof(float)); 
+        for(uint i = 0; i< D; i++){
+            cudaMalloc((void**)&p->Nvg_dev[i][0], D * NP * sizeof(float));
+            cudaMalloc((void**)&p->Nvg_dev[i][1], D * NP * sizeof(float));
+        }
 
         //set rnd seed
         init_genrand_kernel<<<NB,NT>>>((unsigned long long)genrand_int32(),p->rndState_dev);
@@ -47,8 +49,10 @@ namespace PhysPeach{
         cudaFree(p->getNK_dev[1]);
         cudaFree(p->getNU_dev[0]);
         cudaFree(p->getNU_dev[1]);
-        cudaFree(p->getNvg_dev);
-        cudaFree(p->Nvg_dev);
+        for(uint i = 0; i< D; i++){
+            cudaFree(p->Nvg_dev[i][0]);
+            cudaFree(p->Nvg_dev[i][1]);
+        }
         return;
     }
 
@@ -85,5 +89,52 @@ namespace PhysPeach{
                 x[n] += L;
             }
         }
+    }
+
+    //time evolutions
+    __global__ void vEvoBD(float *v, double dt, float thermalFuctor, float *force, curandState *state){
+        uint i_global = blockIdx.x * blockDim.x + threadIdx.x;
+        for(int i = i_global; i < D * NP; i += NB*NT){
+            v[i] += dt*(-v[i] + force[i] + thermalFuctor*curand_normal(&state[i]));
+        }
+    }
+    __global__ void xEvo(float *x, double dt, float L, float *v){
+        uint i_global = blockIdx.x * blockDim.x + threadIdx.x;
+        for(int i = i_global; i < D * NP; i += NB*NT){
+            x[i] += dt * v[i];
+            //periodic
+            if(x[i] > L){
+                x[i] -= L;
+            }
+            else if(x[i] < 0){
+                x[i] += L;
+            }
+        }
+    }
+    __global__ void glo_removevg(float *v, float* Nvg){
+        uint i_global = blockIdx.x * blockDim.x + threadIdx.x;
+
+        float vg_local = Nvg[0]/NP;
+        for(uint i = i_global; i < NP; i += NB * NT){
+            v[i] -= vg_local;
+        }
+    }
+    void removevg2D(Particles* p){
+        //summations
+        uint flip = 0;
+        uint l = NP;
+        reductionSum<<<NB,NT>>>(p->Nvg_dev[0][0], &p->v_dev[0], l);
+        reductionSum<<<NB,NT>>>(p->Nvg_dev[1][0], &p->v_dev[NP], l);
+        l = (l + NT-1)/NT;
+        while(l > 1){
+            flip = !flip;
+            reductionSum<<<NB,NT>>>(p->Nvg_dev[0][flip], p->Nvg_dev[0][!flip], l);
+            reductionSum<<<NB,NT>>>(p->Nvg_dev[1][flip], p->Nvg_dev[1][!flip], l);
+            l = (l + NT-1)/NT;
+        }
+        glo_removevg<<<NB,NT>>>(&p->v_dev[0],p->Nvg_dev[0][flip]);
+        glo_removevg<<<NB,NT>>>(&p->v_dev[NP],p->Nvg_dev[1][flip]);
+        
+        return;
     }
 }

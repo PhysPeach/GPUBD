@@ -44,10 +44,9 @@ namespace PhysPeach{
         updateGrid2D<<<NB,NT>>>(box->g, box->g.cell_dev, box->p.x_dev);
         //remove overraps by using harmonic potential
         uint Nt = 20. / box->dt;
-        /*for(int nt = 0; nt < Nt; nt++){
-            tHarmonicDvlp();
-            judgeUpdateGrid();
-        }*/
+        for(int nt = 0; nt < Nt; nt++){
+            harmonicEvoBox(box);
+        }
         
         box->logFile << "-> SIP Done!" << std::endl;
         return;
@@ -82,6 +81,42 @@ namespace PhysPeach{
         //equilibrateSys(10 * tau);
     
         box->logFile << "-> Init Done!" << std::endl;
+        return;
+    }
+
+    //time evolution
+    inline void harmonicEvoBox(Box* box){
+        culcHarmonicFint2D<<<NB,NT>>>(
+            box->g, 
+            box->g.refCell_dev, 
+            box->g.cell_dev, 
+            box->p.force_dev, 
+            box->L, 
+            box->p.diam_dev, 
+            box->p.x_dev
+        );
+        vEvoBD<<<NB,NT>>>(box->p.v_dev, box->dt, 0, box->p.force_dev, box->p.rndState_dev);
+        removevg2D(&box->p);
+        xEvo<<<NB,NT>>>(box->p.x_dev, box->dt, box->L, box->p.v_dev);
+        checkUpdate(&box->g, box->dt, box->p.x_dev, box->p.v_dev);
+
+        return;
+    }
+    inline void tEvoBox(Box* box){
+        culcFint2D<<<NB,NT>>>(
+            box->g, 
+            box->g.refCell_dev, 
+            box->g.cell_dev, 
+            box->p.force_dev, 
+            box->L, 
+            box->p.diam_dev, 
+            box->p.x_dev
+        );
+        vEvoBD<<<NB,NT>>>(box->p.v_dev, box->dt, 0, box->p.force_dev, box->p.rndState_dev);
+        removevg2D(&box->p);
+        xEvo<<<NB,NT>>>(box->p.x_dev, box->dt, box->L, box->p.v_dev);
+        checkUpdate(&box->g, box->dt, box->p.x_dev, box->p.v_dev);
+        
         return;
     }
 }
