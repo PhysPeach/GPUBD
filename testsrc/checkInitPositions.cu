@@ -19,8 +19,8 @@ int main(){
     //test
     Tfin = 1;
     tau = 100;
-    IDs = 1;
-    IDe = 1;
+    IDs = 0;
+    IDe = 0;
 
     //initialise random func
     init_genrand((unsigned long)time(NULL));
