@@ -37,7 +37,7 @@ const float PI = 3.141593;
 const float dt_INIT = 0.01;
 const float dt_BD = 0.003;
 const float dt_MD = 0.001;
-extern float tau;
+extern double tmax;
 
 //particles diameters
 const float a0 = 1.2; //(a1+a2)/2
