@@ -155,6 +155,6 @@ namespace PhysPeach{
         }
         cudaMemcpy(&NK, p->getNK_dev[flip], sizeof(float), cudaMemcpyDeviceToHost);
 
-        return NK;
+        return NK/(2. * NP);
     }
 }
