@@ -1,13 +1,13 @@
 #include <iostream>
 #include <fstream>
 
-#include "../h/particles.cuh"
+#include "../h/MT.h"
+
 #include "../h/box.cuh"
 #include "../h/parameters.cuh"
 
-unsigned int IT;
-unsigned int IDs;
-unsigned int IDe;
+uint IDs;
+uint IDe;
 float tau;
 float Tfin;
 
@@ -18,8 +18,8 @@ int main(){
     //test
     Tfin = 1;
     tau = 100;
-    IDs = 1;
-    IDe = 1;
+    IDs = 0;
+    IDe = 0;
 
     //initialise random func
     init_genrand((unsigned long)time(NULL));
@@ -31,11 +31,30 @@ int main(){
     std::cout << "ID = [" << IDs << ", " << IDe << "]" << std::endl;
     std::cout << "--------------" << std::endl;
 
+    float force[D*NP];
+
     Box box;
     makeBox(&box);
-    initBox(&box,1);
+    initBox(&box, 0);
+
+    cudaMemcpy(force, box.p.force_dev, D*NP*sizeof(float),cudaMemcpyDeviceToHost);
+    for(uint i = 0; i < D*NP; i++){
+        std::cout << i << ": " << force[i] << std::endl;
+    }
+    std::ofstream checkPositions("testData/checkPositions.data");
+
+    cudaMemcpy(box.p.x, box.p.x_dev, D * NP * sizeof(float), cudaMemcpyDeviceToHost);
+
+    for(uint n = 0; n < NP; n++){
+        for(char d = 0; d < D; d++){
+            checkPositions << box.p.x[d * NP + n] << " ";
+        }
+        checkPositions << std::endl;
+    }
+
+    checkPositions.close();
+
     killBox(&box);
 
-    std::cout << "makeBox done!" << std::endl;
     return 0;
 }
