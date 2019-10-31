@@ -103,11 +103,19 @@ namespace PhysPeach{
         return;
     }
     inline void tEvoBox(Box* box){
-        //culcHarmonicInteractions
-        //vDvlpBD
-        //setvgzero2D
-        //xDvlp
-        //checkgrid
+        culcFint2D<<<NB,NT>>>(
+            box->g, 
+            box->g.refCell_dev, 
+            box->g.cell_dev, 
+            box->p.force_dev, 
+            box->L, 
+            box->p.diam_dev, 
+            box->p.x_dev
+        );
+        vEvoBD<<<NB,NT>>>(box->p.v_dev, box->dt, 0, box->p.force_dev, box->p.rndState_dev);
+        removevg2D(&box->p);
+        xEvo<<<NB,NT>>>(box->p.x_dev, box->dt, box->L, box->p.v_dev);
+        checkUpdate(&box->g, box->dt, box->p.x_dev, box->p.v_dev);
         
         return;
     }
