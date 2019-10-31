@@ -21,7 +21,7 @@ namespace PhysPeach{
         float *force_dev;
 
         //for setters and getters
-        float *getNK_dev[2], *getNU_dev[2]; //K[D * N], U[N]
+        float *getNK_dev[2]; //K[D * N]
         float* Nvg_dev[D][2];
     };
     void makeParticles(Particles* particles);

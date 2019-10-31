@@ -16,6 +16,9 @@ namespace PhysPeach{
         uint* cell_dev;//[M2][EpM] ->[m2* EpM + epm] epm = 0->NofE
         uint updateFreq;
         float* vmax_dev[2];
+
+        //for setters and getters
+        float *getNU_dev[2]; //U[N]
     };
     void makeGrid(Grid* grid, float L);
     void killGrid(Grid* grid);
@@ -39,6 +42,9 @@ namespace PhysPeach{
         float L, 
         float *diam, 
         float *x);
+    
+    //for setters and getters
+    float U(Grid* grid, float *diam, float *x);
 }
 
 #endif

@@ -22,8 +22,6 @@ namespace PhysPeach{
         //for setters and getters 
         cudaMalloc((void**)&p->getNK_dev[0], D * NP * sizeof(float));
         cudaMalloc((void**)&p->getNK_dev[1], D * NP * sizeof(float));
-        cudaMalloc((void**)&p->getNU_dev[0], NP * sizeof(float));
-        cudaMalloc((void**)&p->getNU_dev[1], NP * sizeof(float));
         for(uint i = 0; i< D; i++){
             cudaMalloc((void**)&p->Nvg_dev[i][0], D * NP * sizeof(float));
             cudaMalloc((void**)&p->Nvg_dev[i][1], D * NP * sizeof(float));
@@ -47,8 +45,6 @@ namespace PhysPeach{
 
         cudaFree(p->getNK_dev[0]);
         cudaFree(p->getNK_dev[1]);
-        cudaFree(p->getNU_dev[0]);
-        cudaFree(p->getNU_dev[1]);
         for(uint i = 0; i< D; i++){
             cudaFree(p->Nvg_dev[i][0]);
             cudaFree(p->Nvg_dev[i][1]);
