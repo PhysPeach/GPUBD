@@ -8,7 +8,7 @@
 
 uint IDs;
 uint IDe;
-float tau;
+double tmax;
 float Tfin;
 
 using namespace PhysPeach;
@@ -17,17 +17,21 @@ int main(){
 
     //test
     Tfin = 1;
-    tau = 100;
+    char timescale = 7;
     IDs = 0;
     IDe = 0;
+
+    tmax = 1;
+    for(char ts = 0; ts <timescale; ts++){
+        tmax *= 2;
+    }
 
     //initialise random func
     init_genrand((unsigned long)time(NULL));
 
     std::cout << "---Settings---" << std::endl;
     std::cout << "Tfin = " << Tfin << std::endl;
-    std::cout << "t_eq = " << tau << std::endl;
-    std::cout << "t_rec = " << tau << std::endl;
+    std::cout << "tmax = " << tmax << std::endl;
     std::cout << "ID = [" << IDs << ", " << IDe << "]" << std::endl;
     std::cout << "--------------" << std::endl;
 
