@@ -1,8 +1,8 @@
 test: testsrc/test.o c/particles.o c/box.o c/grid.o c/generalFuncs.o c/MT.o
 	nvcc -arch=sm_60 -o $@ $^
 
-%.o: %.cu h
+%.o: %.cu h/%.cuh h/parameters.cuh
 	nvcc -arch=sm_60 -o $@ -c $<
 
-MT.o: MT.cu h/MT.h
+%.o: %.cu h/parameters.cuh
 	nvcc -arch=sm_60 -o $@ -c $<
