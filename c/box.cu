@@ -55,7 +55,7 @@ namespace PhysPeach{
         box->id = ID;
         std::cout << "Start Initialisation: ID = " << box->id << std::endl;
     
-       //for record
+        //for record
         std::ostringstream positionFileName;
         positionFileName << "../pos/N" << (uint)NP << "/T" << Tfin << "/posBD_N" << (uint)NP << "_T" << Tfin << "_id" << box->id <<".data";
         box->positionFile.open(positionFileName.str().c_str());
@@ -66,20 +66,10 @@ namespace PhysPeach{
         box->logFile << "Start Initialisation: ID = " << box->id << std::endl;
         box->logFile << "Created Box ID = " << box->id << std::endl;
         
-        //hotstart(Tinit >> 1)
-        setdt_T(box, dt_INIT, Tinit);
-
+        setdt_T(box, dt_INIT, Tfin);
         prepareBox(box);
-    
-        //equilibrateSys(30.0);
-    
-        //Tinit -> Tfin
-        //coolSys(Tfin, tau);
-    
-        //setdt_T(dt_BD, Tfin);
-    
-        //equilibrateSys(10 * tau);
-    
+        setdt_T(box, dt_BD, Tfin);
+        equilibrateBox(box, tmax);
         box->logFile << "-> Init Done!" << std::endl;
         return;
     }
@@ -117,6 +107,17 @@ namespace PhysPeach{
         xEvo<<<NB,NT>>>(box->p.x_dev, box->dt, box->L, box->p.v_dev);
         checkUpdate(&box->g, box->dt, box->p.x_dev, box->p.v_dev);
         
+        return;
+    }
+
+    //equilibrations
+    void equilibrateBox(Box* box, double teq){
+        std::cout << "Equilibrate the System: ID = " << box->id << std::endl;
+	    uint Nt = teq/box->dt;
+	    for (uint nt = 0; nt < Nt; nt++) {
+		    tEvoBox(box);
+	    }
+	    std::cout << " -> Edone: ID = "<< box->id << std::endl;
         return;
     }
 }
