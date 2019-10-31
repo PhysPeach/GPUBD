@@ -31,5 +31,14 @@ namespace PhysPeach{
         float L, 
         float *diam, 
         float *x);
+    __global__ void culcFint2D(
+        Grid g,
+        uint *refCell, 
+        uint *cell, 
+        float *force, 
+        float L, 
+        float *diam, 
+        float *x);
 }
+
 #endif
