@@ -112,7 +112,7 @@ namespace PhysPeach{
             box->p.diam_dev, 
             box->p.x_dev
         );
-        vEvoBD<<<NB,NT>>>(box->p.v_dev, box->dt, 0, box->p.force_dev, box->p.rndState_dev);
+        vEvoBD<<<NB,NT>>>(box->p.v_dev, box->dt, box->T, box->p.force_dev, box->p.rndState_dev);
         removevg2D(&box->p);
         xEvo<<<NB,NT>>>(box->p.x_dev, box->dt, box->L, box->p.v_dev);
         checkUpdate(&box->g, box->dt, box->p.x_dev, box->p.v_dev);
