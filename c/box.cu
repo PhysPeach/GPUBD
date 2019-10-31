@@ -44,7 +44,6 @@ namespace PhysPeach{
         updateGrid2D<<<NB,NT>>>(box->g, box->g.cell_dev, box->p.x_dev);
         //remove overraps by using harmonic potential
         uint Nt = 20. / box->dt;
-        Nt = 1000;
         for(int nt = 0; nt < Nt; nt++){
             harmonicEvoBox(box);
         }
@@ -99,9 +98,7 @@ namespace PhysPeach{
         vEvoBD<<<NB,NT>>>(box->p.v_dev, box->dt, 0, box->p.force_dev, box->p.rndState_dev);
         removevg2D(&box->p);
         xEvo<<<NB,NT>>>(box->p.x_dev, box->dt, box->L, box->p.v_dev);
-        //checkUpdate(&box->g, box->dt, box->p.x_dev, box->p.v_dev);
-        setIntVecZero<<<NB,NT>>>(box->g.cell_dev, box->g.M * box->g.M * box->g.EpM);
-        updateGrid2D<<<NB,NT>>>(box->g, box->g.cell_dev, box->p.x_dev);
+        checkUpdate(&box->g, box->dt, box->p.x_dev, box->p.v_dev);
 
         return;
     }

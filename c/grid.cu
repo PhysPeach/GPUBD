@@ -102,8 +102,6 @@ namespace PhysPeach{
         static uint counter = 0;
         counter++;
         if(counter >= grid->updateFreq){
-            //debug
-            std::cout << "update! c = " << counter << std::endl;
             setIntVecZero<<<NB,NT>>>(grid->cell_dev, grid->M * grid->M * grid->EpM);
             updateGrid2D<<<NB,NT>>>(*grid, grid->cell_dev, x);
             setUpdateFreq(grid, dt, v);
