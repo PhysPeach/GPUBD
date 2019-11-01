@@ -135,7 +135,7 @@ namespace PhysPeach{
     }
     __global__ void getvv(float *vv, float *v){
         uint i_global = blockIdx.x * blockDim.x + threadIdx.x;
-        for(uint i = i_global; i < NP; i += NB * NT){
+        for(uint i = i_global; i < D*NP; i += NB * NT){
             vv[i] = v[i] * v[i];
         }
     }
