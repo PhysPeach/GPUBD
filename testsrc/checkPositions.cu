@@ -3,6 +3,7 @@
 
 #include "../h/MT.h"
 
+#include "../h/particles.cuh"
 #include "../h/box.cuh"
 #include "../h/parameters.cuh"
 
@@ -41,10 +42,21 @@ int main(){
     makeBox(&box);
     initBox(&box, 0);
 
+    float av = 0;
+    float sig = 0.;
     cudaMemcpy(force, box.p.force_dev, D*NP*sizeof(float),cudaMemcpyDeviceToHost);
     for(uint i = 0; i < D*NP; i++){
         std::cout << i << ": " << force[i] << std::endl;
+        av += force[i]/(D*NP);
     }
+    for(uint i = 0; i < D*NP; i++){
+        sig += (av - force[i])*(av - force[i])/(D*NP);
+    }
+    sig = sqrt(sig);
+    std::cout <<"force: av = " << av << ", sig = " << sig << std::endl;
+    
+    std::cout << "K:" << K(&box.p) << ", U:" << U(&box.g, box.p.diam_dev, box.p.x_dev) << std::endl;
+
     std::ofstream checkPositions("testData/checkPositions.data");
 
     cudaMemcpy(box.p.x, box.p.x_dev, D * NP * sizeof(float), cudaMemcpyDeviceToHost);
