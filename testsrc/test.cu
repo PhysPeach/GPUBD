@@ -17,7 +17,7 @@ int main(){
     Tfin = 1;
     char timescale = 7;
     IDs = 0;
-    IDe = 0;
+    IDe = 10;
 
     tmax = 1;
     for(char ts = 0; ts <timescale; ts++){
@@ -32,8 +32,10 @@ int main(){
 
     Box box;
     makeBox(&box);
-    initBox(&box, 0);
-    getData(&box);
+    for(uint i = IDs; i <= IDe; i++){
+        initBox(&box, i);
+        getData(&box);
+    }
     killBox(&box);
 
     return 0;
