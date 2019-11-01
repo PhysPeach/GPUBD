@@ -1,6 +1,8 @@
 #ifndef PARTICLES_CUH
 #define PARTICLES_CUH
 
+#include <time.h>
+
 #include <cuda.h>
 #include <curand_kernel.h>
 
