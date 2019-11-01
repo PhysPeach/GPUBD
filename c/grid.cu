@@ -13,7 +13,7 @@ namespace PhysPeach{
         }
         return a;
     }
-    void makeGrid(Grid* grid, float L){
+    void makeGrid(Grid* grid, double L){
         //define M ~ L/Rcell: Rcell ~ 5a
         grid->M = SQRT_NUM_OF_CELLS;
         grid->rc = L/(double)grid->M;
@@ -84,7 +84,7 @@ namespace PhysPeach{
             cell[n_m + counter] = n;
         }
     }
-    void setUpdateFreq(Grid* grid, double dt, double *v){
+    void setUpdateFreq(Grid* grid, double dt, float *v){
         float vmax;
         uint flip = 0;
         uint l = D * NP;
