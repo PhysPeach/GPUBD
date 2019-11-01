@@ -1,6 +1,9 @@
 test: testsrc/test.o c/particles.o c/box.o c/grid.o c/generalFuncs.o c/MT.o
 	nvcc -arch=sm_60 -o $@ $^
 
+measuretime: measuresrc/measuretime.o c/particles.o c/box.o c/grid.o c/generalFuncs.o c/MT.o
+	nvcc -arch=sm_60 -o $@ $^
+
 BD1024: src/main.o c/particles.o c/box.o c/grid.o c/generalFuncs.o c/MT.o
 	nvcc -arch=sm_60 -o $@ $^
 
