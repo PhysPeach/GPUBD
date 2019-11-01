@@ -1,9 +1,9 @@
 #include "../h/particles.cuh"
 
 namespace PhysPeach{
-    __global__ void init_genrand_kernel(unsigned long long seed, curandState* state){
+    __global__ void init_genrand_kernel(unsigned long long s, curandState* state){
         uint i_global = blockIdx.x * blockDim.x + threadIdx.x;
-        curand_init(seed, i_global,0,&state[i_global]);
+        curand_init(s, i_global,0,&state[i_global]);
     }
     
     void makeParticles(Particles* p){
@@ -26,9 +26,6 @@ namespace PhysPeach{
             cudaMalloc((void**)&p->Nvg_dev[i][0], D * NP * sizeof(float));
             cudaMalloc((void**)&p->Nvg_dev[i][1], D * NP * sizeof(float));
         }
-
-        //set rnd seed
-        init_genrand_kernel<<<NB,NT>>>((unsigned long long)genrand_int32(),p->rndState_dev);
         return;
     }
     
@@ -60,31 +57,17 @@ namespace PhysPeach{
         for(uint i = i_global; i < NP; i+=NB*NT){
             diam[i] = a1 + atmp * (i%2);
         }
-
-        curandState localState = rndState[i_global];
         for(uint i = i_global; i < D * NP; i+=NB*NT){
-            x[i] = l * curand_uniform(&localState);
+            x[i] = l * curand_uniform(&rndState[i]);
             v[i] = 0.0;
         }
-        rndState[i_global] = localState;
     }
     void scatterParticles(Particles* p, float L){
         //set positions by uniform random destribution
-        setRndParticleStates<<<NB,NT>>>(L, p->diam_dev, p->x_dev, p->v_dev, p->rndState_dev);
-        checkPeriodic<<<NB,NT>>>(L, p->x_dev);
+        init_genrand((unsigned long)time(NULL));
+        init_genrand_kernel<<<NB,NT>>>((unsigned long long)genrand_int32(),p->rndState_dev);
+        setRndParticleStates<<<NB,NT>>>(0.9999*L, p->diam_dev, p->x_dev, p->v_dev, p->rndState_dev);
         return;
-    }
-    __global__ void checkPeriodic(float L, float *x){
-        uint n_global = blockIdx.x * blockDim.x + threadIdx.x;
-
-        for(uint n = n_global; n < NP; n += NB*NT){
-            if(x[n] > L){
-                x[n] -= L;
-            }
-            else if (x[n] < 0){
-                x[n] += L;
-            }
-        }
     }
 
     //time evolutions

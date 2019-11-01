@@ -27,7 +27,6 @@ namespace PhysPeach{
     void makeParticles(Particles* particles);
     void killParticles(Particles* particles);
     void scatterParticles(Particles* particles, float L);
-    __global__ void checkPeriodic(float L, float *x);
 
     //time evolutions
     __global__ void vEvoBD(float *v, double dt, float themalFuctor, float *force, curandState *state);

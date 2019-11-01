@@ -28,7 +28,7 @@ namespace PhysPeach{
     
         //recorder
         std::ofstream positionFile;
-        std::ofstream logFile;
+        std::ofstream animeFile;
     };
     
     //setters and getters
@@ -48,8 +48,8 @@ namespace PhysPeach{
     void equilibrateBox(Box* box, double teq);
     
     //record
-    //void recordSys(Box* box);
-    //void getData(Box* box);
+    void recBox(std::ofstream *of, Box* box);
+    void getData(Box* box);
 }
 
 #endif
