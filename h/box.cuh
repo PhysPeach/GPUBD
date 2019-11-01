@@ -20,7 +20,7 @@ namespace PhysPeach{
         double t; //time
         float T; //temparature
         float thermalFuctor; //sqrt(2*ZT * T /dt)
-        float L; //length of box
+        double L; //length of box
         Particles p;
     
         //cell list

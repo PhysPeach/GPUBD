@@ -11,7 +11,7 @@ namespace PhysPeach{
         box->dt = dt_MD;
         box->t = 0.;
         box->T = Tfin;
-        box->L = sqrt(NP/DNSTY);
+        box->L = sqrt((double)NP/(double)DNSTY);
         box->thermalFuctor = sqrt(2*box->T/box->dt);
 
         makeGrid(&box->g, box->L);
@@ -122,7 +122,7 @@ namespace PhysPeach{
 
     //record
     void recBox(std::ofstream *of, Box* box){
-        cudaMemcpy(box->p.x, box->p.x_dev, D * NP * sizeof(float), cudaMemcpyDeviceToHost);
+        cudaMemcpy(box->p.x, box->p.x_dev, D * NP * sizeof(double), cudaMemcpyDeviceToHost);
         cudaMemcpy(box->p.v, box->p.v_dev, D * NP * sizeof(float), cudaMemcpyDeviceToHost);
         *of << box->t << " " << K(&box->p) << " " << U(&box->g, box->p.diam_dev, box->p.x_dev) << " ";
 	    for (int n = 0; n < NP; n++) {

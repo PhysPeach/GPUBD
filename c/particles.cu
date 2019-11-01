@@ -9,12 +9,12 @@ namespace PhysPeach{
     void makeParticles(Particles* p){
         //malloc host
         p->diam = (float*)malloc(NP * sizeof(float));
-        p->x = (float*)malloc(D * NP*sizeof(float));
+        p->x = (double*)malloc(D * NP * sizeof(double));
         p->v = (float*)malloc(D * NP * sizeof(float));
     
         //malloc device
         cudaMalloc((void**)&p->diam_dev, NP * sizeof(float));
-        cudaMalloc((void**)&p->x_dev, D * NP * sizeof(float));
+        cudaMalloc((void**)&p->x_dev, D * NP * sizeof(double));
         cudaMalloc((void**)&p->v_dev, D * NP * sizeof(float));
         cudaMalloc((void**)&p->rndState_dev, D * NP *sizeof(curandState));
         cudaMalloc((void**)&p->force_dev, D * NP*sizeof(float));
@@ -22,9 +22,9 @@ namespace PhysPeach{
         //for setters and getters 
         cudaMalloc((void**)&p->getNK_dev[0], D * NP * sizeof(float));
         cudaMalloc((void**)&p->getNK_dev[1], D * NP * sizeof(float));
-        for(uint i = 0; i< D; i++){
-            cudaMalloc((void**)&p->Nvg_dev[i][0], D * NP * sizeof(float));
-            cudaMalloc((void**)&p->Nvg_dev[i][1], D * NP * sizeof(float));
+        for(uint i = 0; i < D; i++){
+            cudaMalloc((void**)&p->Nvg_dev[i][0], NP * sizeof(float));
+            cudaMalloc((void**)&p->Nvg_dev[i][1], NP * sizeof(float));
         }
         return;
     }
@@ -50,7 +50,7 @@ namespace PhysPeach{
     }
 
     //setters and getters
-    __global__ void setRndParticleStates(float l,float *diam, float *x, float *v ,curandState *rndState){
+    __global__ void setRndParticleStates(double l,float *diam, double *x, float *v ,curandState *rndState){
         uint i_global = blockIdx.x * blockDim.x + threadIdx.x;
         
         float atmp = a2 - a1;
@@ -62,7 +62,7 @@ namespace PhysPeach{
             v[i] = 0.0;
         }
     }
-    void scatterParticles(Particles* p, float L){
+    void scatterParticles(Particles* p, double L){
         //set positions by uniform random destribution
         init_genrand((unsigned long)time(NULL));
         init_genrand_kernel<<<NB,NT>>>((unsigned long long)genrand_int32(),p->rndState_dev);
@@ -77,7 +77,7 @@ namespace PhysPeach{
             v[i] += dt*(-v[i] + force[i] + thermalFuctor*curand_normal(&state[i]));
         }
     }
-    __global__ void xEvo(float *x, double dt, float L, float *v){
+    __global__ void xEvo(double *x, double dt, double L, float *v){
         uint i_global = blockIdx.x * blockDim.x + threadIdx.x;
         for(int i = i_global; i < D * NP; i += NB*NT){
             x[i] += dt * v[i];

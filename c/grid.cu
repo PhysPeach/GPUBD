@@ -16,13 +16,13 @@ namespace PhysPeach{
     void makeGrid(Grid* grid, float L){
         //define M ~ L/Rcell: Rcell ~ 5a
         grid->M = SQRT_NUM_OF_CELLS;
-        grid->rc = L/(float)grid->M;
+        grid->rc = L/(double)grid->M;
         uint M2 = grid->M * grid->M;
         grid->updateFreq = 1;
 
         //for parallel interactions
-        uint M_NGx = (float)grid->M/(float)NGx + 0.9;
-        uint M_NGy = (float)grid->M/(float)NGy + 0.9;
+        uint M_NGx = (double)grid->M/(double)NGx + 0.9;
+        uint M_NGy = (double)grid->M/(double)NGy + 0.9;
         cudaMalloc((void**)&grid->refCell_dev, M_NGy * M_NGx * sizeof(uint));
         makeCellPattern2D(grid);
 
@@ -49,8 +49,8 @@ namespace PhysPeach{
         return;
     }
     void makeCellPattern2D(Grid* grid){
-        uint M_NGx = (float)grid->M/(float)NGx + 0.9;
-        uint M_NGy = (float)grid->M/(float)NGy + 0.9;
+        uint M_NGx = (double)grid->M/(double)NGx + 0.9;
+        uint M_NGy = (double)grid->M/(double)NGy + 0.9;
         uint pattern[M_NGy*M_NGx];
 
         uint Pos[D];
@@ -63,12 +63,12 @@ namespace PhysPeach{
         cudaMemcpy(grid->refCell_dev, pattern, M_NGx * M_NGy * sizeof(uint), cudaMemcpyHostToDevice);
         return;
     }
-    __global__ void updateGrid2D(Grid grid, uint* cell, float* x){
+    __global__ void updateGrid2D(Grid grid, uint* cell, double* x){
         uint n_global = blockIdx.x * blockDim.x + threadIdx.x;
 
         uint M = grid.M;
         uint EpM = grid.EpM;
-        float rc = grid.rc;
+        double rc = grid.rc;
     
         uint cellPosBasis[D];
         uint cellAddress;//[0, M * M - 1]
@@ -84,7 +84,7 @@ namespace PhysPeach{
             cell[n_m + counter] = n;
         }
     }
-    void setUpdateFreq(Grid* grid, double dt, float *v){
+    void setUpdateFreq(Grid* grid, double dt, double *v){
         float vmax;
         uint flip = 0;
         uint l = D * NP;
@@ -104,7 +104,7 @@ namespace PhysPeach{
         }
         return;
     }
-    void checkUpdate(Grid* grid, double dt, float* x, float* v){
+    void checkUpdate(Grid* grid, double dt, double* x, float* v){
         static uint counter = 0;
         counter++;
         if(counter >= grid->updateFreq){
@@ -120,13 +120,13 @@ namespace PhysPeach{
         uint *refCell, 
         uint *cell, 
         float *force, 
-        float L, 
+        double L, 
         float *diam, 
-        float *x
+        double *x
     ){
         uint i_global = blockIdx.x * blockDim.x + threadIdx.x;
         const int EpM = EPM;
-        float rc = grid.rc;
+        double rc = grid.rc;
         int M = grid.M;
 
         //for cells
@@ -137,9 +137,10 @@ namespace PhysPeach{
 
         //for Fint
         uint j;
-        float Lh = 0.5 * L;
+        double Lh = 0.5 * L;
         float f_rij;
-        float xij[D], rij2, aij, aij2;
+        double xij[D];
+        float rij2, aij, aij2;
 
         for(uint i = i_global; i < NP; i += NB*NT){
             force[i] = 0; force[i+NP]=0;
@@ -191,13 +192,13 @@ namespace PhysPeach{
         uint *refCell, 
         uint *cell, 
         float *force, 
-        float L, 
+        double L, 
         float *diam, 
-        float *x
+        double *x
     ){
         uint i_global = blockIdx.x * blockDim.x + threadIdx.x;
         const int EpM = EPM;
-        float rc = grid.rc;
+        double rc = grid.rc;
         int M = grid.M;
 
         //for cells
@@ -208,9 +209,10 @@ namespace PhysPeach{
 
         //for Fint
         uint j;
-        float Lh = 0.5 * L;
+        double Lh = 0.5 * L;
         float f_rij;
-        float xij[D], rij2, aij2, ar2, ar6;
+        double xij[D];
+        float rij2, aij2, ar2, ar6;
 
         for(uint i = i_global; i < NP; i += NB*NT){
             force[i] = 0; force[i+NP]=0;
@@ -264,13 +266,13 @@ namespace PhysPeach{
         uint *refCell, 
         uint *cell, 
         float *U, 
-        float L, 
+        double L, 
         float *diam, 
-        float *x
+        double *x
     ){
         uint i_global = blockIdx.x * blockDim.x + threadIdx.x;
         const int EpM = EPM;
-        float rc = grid.rc;
+        double rc = grid.rc;
         int M = grid.M;
 
         //for cells
@@ -281,8 +283,9 @@ namespace PhysPeach{
 
         //for Fint
         uint j;
-        float Lh = 0.5 * L;
-        float xij[D], rij2, aij2, ar2, ar6;
+        double Lh = 0.5 * L;
+        double xij[D];
+        float rij2, aij2, ar2, ar6;
         float C = 1/(3*3*3*3*3*3 * 3*3*3*3*3*3);
 
         for(uint i = i_global; i < NP; i += NB*NT){
@@ -330,7 +333,7 @@ namespace PhysPeach{
             }
         }
     }
-    float U(Grid* grid, float *diam, float *x){
+    float U(Grid* grid, float *diam, double *x){
         float NU = 0;
         uint flip = 0;
 
@@ -348,7 +351,7 @@ namespace PhysPeach{
             flip = !flip;
             reductionSum<<<NB,NT>>>(grid->getNU_dev[flip], grid->getNU_dev[!flip], l);
         }
-        cudaMemcpy(&NU, grid->getNU_dev[flip], sizeof(float), cudaMemcpyDeviceToHost);
+        cudaMemcpy(&NU, grid->getNU_dev[flip], sizeof(double), cudaMemcpyDeviceToHost);
 
         return NU/NP;
     }
