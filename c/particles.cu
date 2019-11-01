@@ -66,8 +66,7 @@ namespace PhysPeach{
         //set positions by uniform random destribution
         init_genrand((unsigned long)time(NULL));
         init_genrand_kernel<<<NB,NT>>>((unsigned long long)genrand_int32(),p->rndState_dev);
-        setRndParticleStates<<<NB,NT>>>(L, p->diam_dev, p->x_dev, p->v_dev, p->rndState_dev);
-        checkPeriodic<<<NB,NT>>>(L, p->x_dev);
+        setRndParticleStates<<<NB,NT>>>(0.9999*L, p->diam_dev, p->x_dev, p->v_dev, p->rndState_dev);
         return;
     }
 
