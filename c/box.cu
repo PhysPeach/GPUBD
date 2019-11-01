@@ -164,6 +164,7 @@ namespace PhysPeach{
             }
         }
         box->positionFile.close();
+        std::cout << "Every steps have been done: ID = " << box->id << std::endl << std::endl;
         return;
     }
 }
