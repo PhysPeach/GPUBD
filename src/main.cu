@@ -1,39 +1,39 @@
 #include <iostream>
 
-#include "../h/MT.h"
-
-#include "../h/particles.cuh"
+#include "../h/box.cuh"
 #include "../h/parameters.cuh"
 
-unsigned int IT;
-unsigned int IDs;
-unsigned int IDe;
-float tau;
+uint IDs;
+uint IDe;
+double tmax;
 float Tfin;
 
 using namespace PhysPeach;
-int main(){
-    std::cout << "hello, test" << std::endl;
+int main(int argc, char** argv){
+    IDs = atoi(argv[1]);
+	IDe = atoi(argv[2]);
+	Tfin = atof(argv[3]);
+	char timescale = atoi(argv[4]);
 
-    //test
-    Tfin = 1;
-    tau = 100;
-    IDs = 1;
-    IDe = 1;
-
-    //initialise random func
-    init_genrand((unsigned long)time(NULL));
+    tmax = 1;
+    for(char ts = 0; ts <timescale; ts++){
+        tmax *= 2;
+    }
 
     std::cout << "---Settings---" << std::endl;
-    std::cout << "Tfin = " << Tfin << std::endl;
-    std::cout << "t_eq = " << tau << std::endl;
-    std::cout << "t_rec = " << tau << std::endl;
+    std::cout << "N = " << NP << std::endl;
     std::cout << "ID = [" << IDs << ", " << IDe << "]" << std::endl;
+    std::cout << "Tfin = " << Tfin << std::endl;
+    std::cout << "tmax = " << tmax << std::endl;
     std::cout << "--------------" << std::endl;
 
-    //Particles p;
-    //makeParticles(&p);
-    //killParticles(&p);
+    Box box;
+    makeBox(&box);
+    for(uint i = IDs; i <= IDe; i++){
+        initBox(&box, i);
+        getData(&box);
+    }
+    killBox(&box);
 
     return 0;
 }
