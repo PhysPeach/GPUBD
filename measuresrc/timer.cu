@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
-#include <chrono>
+
+#include "../h/timer.cuh"
 
 #include "../h/box.cuh"
 #include "../h/parameters.cuh"
@@ -15,7 +16,7 @@ int main(){
     std::cout << "hello, evaluate" << std::endl;
 
     Tfin = 1;
-    tmax = 1;
+    tmax = 0.1;
     IDs = 0;
     IDe = 0;
 
@@ -31,17 +32,20 @@ int main(){
     makeBox(&box);
     initBox(&box, 0);
 
-    std::chrono::system_clock::time_point start_time, end_time;
-    std::cout << "start" << std::endl;
-	start = std::chrono::system_clock::now();
+    //Routine
+    const uint loop = 10000;
+    double endTime;
+    std::cout << "starting benchmark" << std::endl;
+    measureTime();
+    benchmark(&box, loop);
+    endTime = measureTime();
 
-	//Routine
-	for (int loop = 0; loop < 1000000; loop++) {
-		tEvoBox(&box);
-    }
-	end = std::chrono::system_clock::now();
-	auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-	std::cout << elapsed << "ms" << std::endl;
+    std::cout << "---Results---" << std::endl;
+    std::cout << "Time: " << endTime << "ms" << std::endl;
+    std::cout << "Loop: " << loop << "steps" << std::endl;
+    std::cout << "   -> " << endTime/(double)loop << "ms/step" << std::endl;
+    std::cout << "-------------" << std::endl;
+
     killBox(&box);
 
     return 0;

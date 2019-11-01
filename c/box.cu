@@ -167,4 +167,10 @@ namespace PhysPeach{
         std::cout << "Every steps have been done: ID = " << box->id << std::endl << std::endl;
         return;
     }
+    void benchmark(Box* box, uint loop){
+        for(uint l = 0; l <=loop; l++){
+            tEvoBox(box);
+        }
+        return;
+    }
 }
