@@ -62,7 +62,7 @@ namespace PhysPeach{
         positionFileName << "../pos/N" << (uint)NP << "/T" << Tfin << "/posBD_N" << (uint)NP << "_T" << Tfin << "_id" << box->id <<".data";
         box->positionFile.open(positionFileName.str().c_str());
         std::ostringstream animeFileName;
-        animeFileName << "../anime/N" << (uint)NP << "/T" << Tfin << "/animeBD_N" << (uint)NP << "_T" << Tfin << "_id" << box->id <<".log";
+        animeFileName << "../anime/N" << (uint)NP << "/T" << Tfin << "/animeBD_N" << (uint)NP << "_T" << Tfin << "_id" << box->id <<".data";
         box->animeFile.open(animeFileName.str().c_str());
         
         setdt_T(box, dt_INIT, Tfin);
@@ -127,13 +127,13 @@ namespace PhysPeach{
         *of << box->t << " " << K(&box->p) << " " << U(&box->g, box->p.diam_dev, box->p.x_dev) << " ";
 	    for (int n = 0; n < NP; n++) {
 		    for (char d = 0; d < D; d++) {
-			    *of << box->p.x_dev[d*NP+n] << " ";
+			    *of << box->p.x[d*NP+n] << " ";
             }
             for (char d = 0; d < D; d++) {
-			    *of << box->p.v_dev[d*NP+n] << " ";
+			    *of << box->p.v[d*NP+n] << " ";
             }
         }
-	    *of << std::endl;
+        *of << std::endl;
         return;
     }
     void getData(Box* box){
@@ -147,9 +147,11 @@ namespace PhysPeach{
             if(nt >= tag){
                 box->t = nt * box->dt;
                 recBox(&box->animeFile, box);
-                tag += tag = 0.1/box->dt;
+                tag += 0.1/box->dt;
             }
         }
+        box->animeFile.close();
+
         std::cout << "getting logPlot datas" << std::endl;
         Nt = tmax/box->dt;
         tag = 10;
@@ -161,6 +163,7 @@ namespace PhysPeach{
                 tag *= 1.1;
             }
         }
+        box->positionFile.close();
         return;
     }
 }
