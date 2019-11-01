@@ -22,8 +22,6 @@ namespace PhysPeach{
         //for setters and getters 
         cudaMalloc((void**)&p->getNK_dev[0], D * NP * sizeof(float));
         cudaMalloc((void**)&p->getNK_dev[1], D * NP * sizeof(float));
-        cudaMalloc((void**)&p->getNU_dev[0], NP * sizeof(float));
-        cudaMalloc((void**)&p->getNU_dev[1], NP * sizeof(float));
         for(uint i = 0; i< D; i++){
             cudaMalloc((void**)&p->Nvg_dev[i][0], D * NP * sizeof(float));
             cudaMalloc((void**)&p->Nvg_dev[i][1], D * NP * sizeof(float));
@@ -47,8 +45,6 @@ namespace PhysPeach{
 
         cudaFree(p->getNK_dev[0]);
         cudaFree(p->getNK_dev[1]);
-        cudaFree(p->getNU_dev[0]);
-        cudaFree(p->getNU_dev[1]);
         for(uint i = 0; i< D; i++){
             cudaFree(p->Nvg_dev[i][0]);
             cudaFree(p->Nvg_dev[i][1]);
@@ -136,5 +132,25 @@ namespace PhysPeach{
         glo_removevg<<<NB,NT>>>(&p->v_dev[NP],p->Nvg_dev[1][flip]);
         
         return;
+    }
+    __global__ void getvv(float *vv, float *v){
+        uint i_global = blockIdx.x * blockDim.x + threadIdx.x;
+        for(uint i = i_global; i < D*NP; i += NB * NT){
+            vv[i] = v[i] * v[i];
+        }
+    }
+    float K(Particles* p){
+        float NK = 0;
+        uint flip = 0;
+
+        getvv<<<NB,NT>>>(p->getNK_dev[0], p->v_dev);
+        //summations
+        for(uint l = D * NP; l > 1; l = (l + NT-1)/NT){
+            flip = !flip;
+            reductionSum<<<NB,NT>>>(p->getNK_dev[flip], p->getNK_dev[!flip], l);
+        }
+        cudaMemcpy(&NK, p->getNK_dev[flip], sizeof(float), cudaMemcpyDeviceToHost);
+
+        return NK/(2. * NP);
     }
 }

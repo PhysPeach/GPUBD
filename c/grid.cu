@@ -33,6 +33,10 @@ namespace PhysPeach{
         cudaMalloc((void**)&grid->vmax_dev[0], D * NP * sizeof(float));
         cudaMalloc((void**)&grid->vmax_dev[1], D * NP * sizeof(float));
 
+        //for setters and getters
+        cudaMalloc((void**)&grid->getNU_dev[0], NP * sizeof(float));
+        cudaMalloc((void**)&grid->getNU_dev[1], NP * sizeof(float));
+
         return;
     }
     void killGrid(Grid* grid){
@@ -40,6 +44,8 @@ namespace PhysPeach{
         cudaFree(grid->cell_dev);
         cudaFree(grid->vmax_dev[0]);
         cudaFree(grid->vmax_dev[1]);
+        cudaFree(grid->getNU_dev[0]);
+        cudaFree(grid->getNU_dev[1]);
         return;
     }
     void makeCellPattern2D(Grid* grid){
@@ -252,5 +258,98 @@ namespace PhysPeach{
                 }
             }
         }
+    }
+    __global__ void culcUint2D(
+        Grid grid, 
+        uint *refCell, 
+        uint *cell, 
+        float *U, 
+        float L, 
+        float *diam, 
+        float *x
+    ){
+        uint i_global = blockIdx.x * blockDim.x + threadIdx.x;
+        const int EpM = EPM;
+        float rc = grid.rc;
+        int M = grid.M;
+
+        //for cells
+        int cellPosBasis[D];
+        int cellPos[D], cellAddress;
+
+        int nm, NofP;
+
+        //for Fint
+        uint j;
+        float Lh = 0.5 * L;
+        float xij[D], rij2, aij2, ar2, ar6;
+        float C = 1/(3*3*3*3*3*3 * 3*3*3*3*3*3);
+
+        for(uint i = i_global; i < NP; i += NB*NT){
+            U[i] = 0;
+
+            cellPosBasis[0] = x[i]/rc;
+            cellPosBasis[1] = x[i+NP]/rc;
+            if(cellPosBasis[0] == -1) cellPosBasis[0] = M - 1;
+            if(cellPosBasis[0] == M) cellPosBasis[0] = 0;
+            if(cellPosBasis[1] == -1) cellPosBasis[1] = M - 1;
+            if(cellPosBasis[1] == M) cellPosBasis[1] = 0;
+            
+            for(int mlx = -1; mlx <= 1; mlx++){
+                cellPos[0] = cellPosBasis[0] + mlx;
+                if(cellPos[0] == -1) cellPos[0] = M - 1;
+                if(cellPos[0] == M) cellPos[0] = 0;
+                for(int mly = -1; mly <= 1; mly++){
+                    cellPos[1] = cellPosBasis[1] + mly;
+                    if(cellPos[1] == -1) cellPos[1] = M - 1;
+                    if(cellPos[1] == M) cellPos[1] = 0;
+                    cellAddress = cellPos[1] * M + cellPos[0];
+                    nm = cellAddress * EpM;
+                    NofP = cell[nm];//1 <= k <= NofP
+
+                    for(uint k = 1; k <=NofP; k++){
+                        j = cell[nm+k];
+                        if(i!=j){
+                            xij[0] = x[j] - x[i];
+                            xij[1] = x[NP+j] - x[NP+i];
+                            if(xij[0] > Lh){xij[0] -= L;}
+                            if(xij[1] > Lh){xij[1] -= L;}
+                            if(xij[0] < -Lh){xij[0] += L;}
+                            if(xij[1] < -Lh){xij[1] += L;}
+                            rij2 = xij[0]*xij[0] + xij[1]*xij[1];
+                            aij2 = 0.5 * (diam[i] + diam[j]);
+                            aij2 *= aij2;
+                            ar2 = aij2/rij2;
+                            if(1 < 9*ar2){
+                                ar6 = ar2 * ar2 * ar2;
+                                U[i] += ar6*ar6 - C;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    float U(Grid* grid, float *diam, float *x){
+        float NU = 0;
+        uint flip = 0;
+
+        culcUint2D<<<NB,NT>>>(
+            *grid,
+            grid->refCell_dev,
+            grid->cell_dev,
+            grid->getNU_dev[0],
+            grid->M * grid->rc,
+            diam,
+            x
+        );
+        //summations
+        for(uint l = NP; l > 1; l = (l + NT-1)/NT){
+            flip = !flip;
+            reductionSum<<<NB,NT>>>(grid->getNU_dev[flip], grid->getNU_dev[!flip], l);
+        }
+        cudaMemcpy(&NU, grid->getNU_dev[flip], sizeof(float), cudaMemcpyDeviceToHost);
+
+        return NU/NP;
     }
 }
