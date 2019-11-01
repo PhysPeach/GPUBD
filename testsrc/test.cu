@@ -17,7 +17,7 @@ int main(){
     Tfin = 1;
     char timescale = 7;
     IDs = 0;
-    IDe = 10;
+    IDe = 0;
 
     tmax = 1;
     for(char ts = 0; ts <timescale; ts++){
