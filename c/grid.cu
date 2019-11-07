@@ -186,8 +186,6 @@ namespace PhysPeach{
     ){
         uint i_block = blockIdx.x;
         uint i_local = threadIdx.x;
-        //debug
-        uint i_global = i_block * blockDim.x + i_local;
 
         //save on resister
         const int EpM = EPM;

@@ -92,7 +92,7 @@ namespace PhysPeach{
         return;
     }
     inline void tEvoBox(Box* box){
-        culcFint2D<<<NB,NT>>>(
+        culcFint2D<<<IB,IT>>>(
             box->g, 
             box->g.refCell_dev, 
             box->g.cell_dev, 
