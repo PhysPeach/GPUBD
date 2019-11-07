@@ -13,6 +13,9 @@ BD2048: src/main.o c/particles.o c/box.o c/grid.o c/generalFuncs.o c/MT.o
 BD4096: src/main.o c/particles.o c/box.o c/grid.o c/generalFuncs.o c/MT.o
 	nvcc -arch=sm_60 -o $@ $^
 
+BD8192: src/main.o c/particles.o c/box.o c/grid.o c/generalFuncs.o c/MT.o
+	nvcc -arch=sm_60 -o $@ $^
+
 BD16384: src/main.o c/particles.o c/box.o c/grid.o c/generalFuncs.o c/MT.o
 	nvcc -arch=sm_60 -o $@ $^
 
