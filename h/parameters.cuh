@@ -5,8 +5,8 @@ typedef  unsigned int uint;
 
 //--Settings--
 //Numbers of Threads and Blocks for general use
-const uint NT  = 1024;
-const uint NB = 2;
+const uint NT  = 512;
+const uint NB = 4;
 
 //Num of Particles
 const uint NP = 1024;
@@ -20,10 +20,10 @@ const uint SQRT_NUM_OF_CELLS = 6;
 const uint EPM = 56;
 
 //Numbers of Threads and Blocks for Interactions
-const uint NGx = 6;
+const uint NGx = 3;
 const uint NGy = 3;
-const uint IT = EPM * NGx * NGy;
-const uint IB = 2;
+const uint IT = 512;
+const uint IB = 4;
 
 //--Define scale parameters--
 //Numbers of initial condition
