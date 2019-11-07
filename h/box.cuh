@@ -35,7 +35,7 @@ namespace PhysPeach{
     inline void setdt_T(Box* box, double setdt, float setT){box->dt = setdt;box->T = setT;box->thermalFuctor = sqrt(2 * setT/setdt);return;}//
     
     //inline float getNU(Box* box);
-
+    void prepareBox(Box* box);
     void makeBox(Box* box);
     void killBox(Box* box);
     void initBox(Box* box, uint ID);
