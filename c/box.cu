@@ -142,15 +142,24 @@ namespace PhysPeach{
         std::cout << "getting anime datas in 10secs" << std::endl;
         Nt = 10./box->dt;
         tag = 0;
+        float Kav = 0;
+        float Uav = 0;
+        float H;
         for(uint nt = 0; nt <=Nt; nt++){
             tEvoBox(box);
             if(nt >= tag){
                 box->t = nt * box->dt;
                 recBox(&box->animeFile, box);
+                Kav += K(&box->p);
+                Uav += U(&box->g, box->p.diam_dev, box->p.x_dev);
                 tag += 0.1/box->dt;
             }
         }
+        Kav *= 0.01; Uav *= 0.01;
+        H = Kav + Uav;
         box->animeFile.close();
+        std::cout << "done! H = " << H << std::endl;
+        std::cout << "Kav = " << Kav << ", Uav = " << Uav << std::endl
 
         std::cout << "getting logPlot datas" << std::endl;
         Nt = tmax/box->dt;
