@@ -108,7 +108,6 @@ namespace PhysPeach{
         uint *refCell, 
         uint *cell, 
         float *force, 
-        double L, 
         float *diam, 
         double *x
     ){
@@ -116,6 +115,7 @@ namespace PhysPeach{
         const int EpM = EPM;
         double rc = grid.rc;
         int M = grid.M;
+        double L = rc * M;
 
         //for cells
         int cellPosBasis[D];
@@ -180,7 +180,6 @@ namespace PhysPeach{
         uint *refCell, 
         uint *cell, 
         float *force, 
-        double L, 
         float *diam, 
         double *x
     ){
@@ -190,6 +189,7 @@ namespace PhysPeach{
         //save on resister
         const int EpM = EPM;
         int M = grid.M;
+        double L = grid.rc * M;
         const uint Mx_l = NGx + 2;
         const uint My_l = NGy + 2;
         const uint Mxy_l = My_l * Mx_l;
@@ -226,7 +226,7 @@ namespace PhysPeach{
         for(uint ib = i_block; ib < blockmax; ib += IB){
             //determine Cell_Basis
             cellAddressBasis = refCell[ib];
-            cellPosBasis[1] = cellAddressBasis / grid.M;
+            cellPosBasis[1] = cellAddressBasis / M;
             cellPosBasis[0] = cellAddressBasis - cellPosBasis[1] * M;
 
             //load centre Mems and sorroundings
@@ -302,7 +302,6 @@ namespace PhysPeach{
         uint *refCell, 
         uint *cell, 
         float *U, 
-        double L, 
         float *diam, 
         double *x
     ){
@@ -310,6 +309,7 @@ namespace PhysPeach{
         const int EpM = EPM;
         double rc = grid.rc;
         int M = grid.M;
+        double L = rc * M;
 
         //for cells
         int cellPosBasis[D];
@@ -377,8 +377,7 @@ namespace PhysPeach{
             *grid,
             grid->refCell_dev,
             grid->cell_dev,
-            grid->getNU_dev[0],
-            grid->M * grid->rc,
+            grid->getNU_dev[0], 
             diam,
             x
         );

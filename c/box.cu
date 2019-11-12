@@ -80,7 +80,6 @@ namespace PhysPeach{
             box->g.refCell_dev, 
             box->g.cell_dev, 
             box->p.force_dev, 
-            box->L, 
             box->p.diam_dev, 
             box->p.x_dev
         );
@@ -97,7 +96,6 @@ namespace PhysPeach{
             box->g.refCell_dev, 
             box->g.cell_dev, 
             box->p.force_dev, 
-            box->L, 
             box->p.diam_dev, 
             box->p.x_dev
         );
@@ -159,7 +157,7 @@ namespace PhysPeach{
         H = Kav + Uav;
         box->animeFile.close();
         std::cout << "done! H = " << H << std::endl;
-        std::cout << "Kav = " << Kav << ", Uav = " << Uav << std::endl
+        std::cout << "Kav = " << Kav << ", Uav = " << Uav << std::endl;
 
         std::cout << "getting logPlot datas" << std::endl;
         Nt = tmax/box->dt;

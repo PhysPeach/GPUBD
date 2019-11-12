@@ -31,7 +31,6 @@ namespace PhysPeach{
         uint *refCell, 
         uint *cell, 
         float *force, 
-        double L, 
         float *diam, 
         double *x);
     __global__ void culcFint2D(
@@ -39,7 +38,6 @@ namespace PhysPeach{
         uint *refCell, 
         uint *cell, 
         float *force, 
-        double L, 
         float *diam, 
         double *x);
     
