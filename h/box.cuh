@@ -29,6 +29,7 @@ namespace PhysPeach{
         //recorder
         std::ofstream positionFile;
         std::ofstream animeFile;
+        std::ofstream epltFile;
     };
     
     //setters and getters

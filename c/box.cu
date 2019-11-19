@@ -37,10 +37,14 @@ namespace PhysPeach{
         cudaMemcpy(box->p.diam, box->p.diam_dev, NP * sizeof(float),cudaMemcpyDeviceToHost);
         for(uint n = 0; n < NP; n++){
             box->positionFile << box->p.diam[n] << " ";
-            box->animeFile << box->p.diam[n] << " ";
+            if(box->id == 1){
+                box->animeFile << box->p.diam[n] << " ";
+            }
         }
         box->positionFile << std::endl << std::endl;
-        box->animeFile << std::endl << std::endl;
+        if(box->id == 1){
+            box->animeFile << std::endl << std::endl;
+        }
         //set posMem and list
         setIntVecZero<<<NB,NT>>>(box->g.cell_dev, box->g.M * box->g.M * box->g.EpM);
         updateGrid2D<<<NB,NT>>>(box->g, box->g.cell_dev, box->p.x_dev);
@@ -61,9 +65,14 @@ namespace PhysPeach{
         std::ostringstream positionFileName;
         positionFileName << "../pos/N" << (uint)NP << "/T" << Tfin << "/posBD_N" << (uint)NP << "_T" << Tfin << "_id" << box->id <<".data";
         box->positionFile.open(positionFileName.str().c_str());
-        std::ostringstream animeFileName;
-        animeFileName << "../anime/N" << (uint)NP << "/T" << Tfin << "/animeBD_N" << (uint)NP << "_T" << Tfin << "_id" << box->id <<".data";
-        box->animeFile.open(animeFileName.str().c_str());
+        if(box->id == 1){
+            std::ostringstream animeFileName;
+            animeFileName << "../anime/N" << (uint)NP << "/T" << Tfin << "/animeBD_N" << (uint)NP << "_T" << Tfin << ".data";
+            box->animeFile.open(animeFileName.str().c_str());
+        }
+        std::ostringstream epltFileName;
+        epltFileName << "../eplt/N" << (uint)NP << "/T" << Tfin << "/epltBD_N" << (uint)NP << "_T" << Tfin << "_id" << box->id <<".data";
+        box->epltFile.open(epltFileName.str().c_str());
         
         setdt_T(box, dt_INIT, Tfin);
         prepareBox(box);
@@ -137,26 +146,29 @@ namespace PhysPeach{
     void getData(Box* box){
         std::cout << "Starting time loop: ID = " << box->id << std::endl;
         uint Nt, tag;
-        std::cout << "getting anime datas in 10secs" << std::endl;
+        std::cout << "getting liniar datas in 10secs" << std::endl;
         Nt = 10./box->dt;
         tag = 0;
+        float Kcrr, Ucrr;
         float Kav = 0;
         float Uav = 0;
-        float H;
         for(uint nt = 0; nt <=Nt; nt++){
             tEvoBox(box);
             if(nt >= tag){
                 box->t = nt * box->dt;
-                recBox(&box->animeFile, box);
-                Kav += K(&box->p);
-                Uav += U(&box->g, box->p.diam_dev, box->p.x_dev);
+                Kcrr = K(&box->p);
+                Ucrr = U(&box->g, box->p.diam_dev, box->p.x_dev);
+                    box->epltFile << box->t << " " << Kcrr + Ucrr << " " << Kcrr << " " << Ucrr << std::endl;
+                if(box->id == 1)
+                    recBox(&box->animeFile, box);
+                Kav += Kcrr;
+                Uav += Ucrr;
                 tag += 0.1/box->dt;
             }
         }
         Kav *= 0.01; Uav *= 0.01;
-        H = Kav + Uav;
         box->animeFile.close();
-        std::cout << "done! H = " << H << std::endl;
+        std::cout << "done! H = " << Kav + Uav << std::endl;
         std::cout << "Kav = " << Kav << ", Uav = " << Uav << std::endl;
 
         std::cout << "getting logPlot datas" << std::endl;
