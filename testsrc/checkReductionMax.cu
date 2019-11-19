@@ -2,14 +2,12 @@
 #include <stdlib.h>
 #include <fstream>
 
-#include "../h/MT.h"
 #include "../h/generalFuncs.cuh"
 #include "../h/parameters.cuh"
 
-unsigned int IT;
 unsigned int IDs;
 unsigned int IDe;
-float tau;
+float tmax;
 float Tfin;
 
 using namespace PhysPeach;
@@ -29,19 +27,9 @@ int main(){
 
     //test
     Tfin = 1;
-    tau = 100;
+    tmax = 1;
     IDs = 0;
     IDe = 0;
-
-    //initialise random func
-    init_genrand((unsigned long)time(NULL));
-
-    std::cout << "---Settings---" << std::endl;
-    std::cout << "Tfin = " << Tfin << std::endl;
-    std::cout << "t_eq = " << tau << std::endl;
-    std::cout << "t_rec = " << tau << std::endl;
-    std::cout << "ID = [" << IDs << ", " << IDe << "]" << std::endl;
-    std::cout << "--------------" << std::endl;
 
     float x;
     uint flip = 0;

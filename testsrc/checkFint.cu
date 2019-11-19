@@ -37,10 +37,18 @@ int main(){
     makeBox(&box);
     initBox(&box, 1);
 
+    float av = 0;
+    float sig = 0.;
     cudaMemcpy(force, box.p.force_dev, D*NP*sizeof(float),cudaMemcpyDeviceToHost);
     for(uint i = 0; i < D*NP; i++){
         std::cout << i << ": " << force[i] << std::endl;
+        av += force[i]/(D*NP);
     }
+    for(uint i = 0; i < D*NP; i++){
+        sig += (av - force[i])*(av - force[i])/(D*NP);
+    }
+    sig = sqrt(sig);
+    std::cout <<"force: av = " << av << ", sig = " << sig << std::endl;
 
     killBox(&box);
 

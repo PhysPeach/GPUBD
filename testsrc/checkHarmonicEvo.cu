@@ -8,7 +8,7 @@
 
 uint IDs;
 uint IDe;
-float tau;
+float tmax;
 float Tfin;
 
 using namespace PhysPeach;
@@ -17,7 +17,7 @@ int main(){
 
     //test
     Tfin = 1;
-    tau = 100;
+    tmax = 1;
     IDs = 0;
     IDe = 0;
 
@@ -26,8 +26,7 @@ int main(){
 
     std::cout << "---Settings---" << std::endl;
     std::cout << "Tfin = " << Tfin << std::endl;
-    std::cout << "t_eq = " << tau << std::endl;
-    std::cout << "t_rec = " << tau << std::endl;
+    std::cout << "tmax = " << tmax << std::endl;
     std::cout << "ID = [" << IDs << ", " << IDe << "]" << std::endl;
     std::cout << "--------------" << std::endl;
 
