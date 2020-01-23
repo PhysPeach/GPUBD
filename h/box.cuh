@@ -4,8 +4,9 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-
 #include <math.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include "generalFuncs.cuh"
 #include "parameters.cuh"
@@ -17,7 +18,6 @@ namespace PhysPeach{
         //Declare System
         uint id;
         double dt;
-        double t; //time
         float T; //temparature
         float thermalFuctor; //sqrt(2*ZT * T /dt)
         double L; //length of box
@@ -25,11 +25,14 @@ namespace PhysPeach{
     
         //cell list
         Grid g;
-    
-        //recorder
-        std::ofstream positionFile;
-        std::ofstream animeFile;
-        std::ofstream epltFile;
+
+        //for record
+        std::string NTDir;
+        std::string LDDir;
+        std::string MDDir;
+        std::string EDir;
+        std::string posDir;
+        std::string velDir;
     };
     
     //setters and getters
@@ -49,7 +52,7 @@ namespace PhysPeach{
     void equilibrateBox(Box* box, double teq);
     
     //record
-    void recBox(std::ofstream *of, Box* box);
+    void recPos(std::ofstream *of, Box* box);
     void getData(Box* box);
     void benchmark(Box* box, uint loop);
 }
