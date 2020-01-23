@@ -9,10 +9,40 @@ namespace PhysPeach{
         //default settings
         box->id = 0;
         box->dt = dt_MD;
-        box->t = 0.;
         box->T = Tfin;
         box->L = sqrt((double)NP/(double)DNSTY);
         box->thermalFuctor = sqrt(2*box->T/box->dt);
+        
+        box->LDDir = "/LD";
+        box->MDDir = "/MD";
+        box->EDir = "/E";
+        box->posDir = "/pos";
+        box->velDir = "/vel";
+
+        //Make dir tree
+        std::ostringstream trajName;
+        struct stat st;
+        trajName << "../traj/N" << (uint)NP;
+        if(stat(trajName.str().c_str(), &st) != 0){
+            mkdir(trajName.str().c_str(), 0755);
+            std::cout << "created " << trajName.str() << std::endl;
+        }
+        trajName << "/T" << Tfin;
+        box->NTDir = trajName.str();
+        if(stat(box->NTDir.c_str(), &st) != 0){
+            mkdir(box->NTDir.c_str(), 0755);
+            std::cout << "created " << box->NTDir << std::endl;
+
+            mkdir((box->NTDir + box->LDDir).c_str(), 0755);
+            mkdir((box->NTDir + box->LDDir + box->EDir).c_str(), 0755);
+            mkdir((box->NTDir + box->LDDir + box->posDir).c_str(), 0755);
+            mkdir((box->NTDir + box->LDDir + box->velDir).c_str(), 0755);
+            
+            mkdir((box->NTDir + box->MDDir).c_str(), 0755);
+            mkdir((box->NTDir + box->MDDir + box->EDir).c_str(), 0755);
+            mkdir((box->NTDir + box->MDDir + box->posDir).c_str(), 0755);
+            mkdir((box->NTDir + box->MDDir + box->velDir).c_str(), 0755);
+        }
 
         makeGrid(&box->g, box->L);
 
@@ -34,22 +64,24 @@ namespace PhysPeach{
     void prepareBox(Box* box){
         std::cout << "Set InitPositions" << std::endl;
         scatterParticles(&box->p, box->L);
-        cudaMemcpy(box->p.diam, box->p.diam_dev, NP * sizeof(float),cudaMemcpyDeviceToHost);
-        for(uint n = 0; n < NP; n++){
-            box->positionFile << box->p.diam[n] << " ";
-            if(box->id == 1){
-                box->animeFile << box->p.diam[n] << " ";
+        struct stat st;
+        std::ostringstream diamName;
+        diamName << "../traj/N" << NP << "/diam.data";
+        if(stat(diamName.str().c_str(), &st) != 0){
+            std::ofstream diamFile;
+            diamFile.open(diamName.str().c_str());
+            std::cout << "created " << diamName.str() << std::endl;
+            cudaMemcpy(box->p.diam, box->p.diam_dev, NP * sizeof(float),cudaMemcpyDeviceToHost);
+            for(uint n = 0; n < NP; n++){
+                diamFile << box->p.diam[n] << std::endl;
             }
-        }
-        box->positionFile << std::endl << std::endl;
-        if(box->id == 1){
-            box->animeFile << std::endl << std::endl;
+            diamFile.close();
         }
         //set posMem and list
         setIntVecZero<<<NB,NT>>>(box->g.cell_dev, box->g.M * box->g.M * box->g.EpM);
         updateGrid2D<<<NB,NT>>>(box->g, box->g.cell_dev, box->p.x_dev);
         //remove overraps by using harmonic potential
-        uint Nt = 20. / box->dt;
+        uint Nt = 10. / box->dt;
         for(int nt = 0; nt < Nt; nt++){
             harmonicEvoBox(box);
         }
@@ -62,18 +94,6 @@ namespace PhysPeach{
         std::cout << "Start Initialisation: ID = " << box->id << std::endl;
     
         //for record
-        std::ostringstream positionFileName;
-        positionFileName << "../pos/N" << (uint)NP << "/T" << Tfin << "/posBD_N" << (uint)NP << "_T" << Tfin << "_id" << box->id <<".data";
-        box->positionFile.open(positionFileName.str().c_str());
-        if(box->id == 1){
-            std::ostringstream animeFileName;
-            animeFileName << "../anime/N" << (uint)NP << "/T" << Tfin << "/animeBD_N" << (uint)NP << "_T" << Tfin << ".data";
-            box->animeFile.open(animeFileName.str().c_str());
-        }
-        std::ostringstream epltFileName;
-        epltFileName << "../eplt/N" << (uint)NP << "/T" << Tfin << "/epltBD_N" << (uint)NP << "_T" << Tfin << "_id" << box->id <<".data";
-        box->epltFile.open(epltFileName.str().c_str());
-        
         setdt_T(box, dt_INIT, Tfin);
         prepareBox(box);
         setdt_T(box, dt_BD, Tfin);
@@ -128,16 +148,11 @@ namespace PhysPeach{
     }
 
     //record
-    void recBox(std::ofstream *of, Box* box){
+    void recPos(std::ofstream *of, Box* box){
         cudaMemcpy(box->p.x, box->p.x_dev, D * NP * sizeof(double), cudaMemcpyDeviceToHost);
-        cudaMemcpy(box->p.v, box->p.v_dev, D * NP * sizeof(float), cudaMemcpyDeviceToHost);
-        *of << box->t << " " << K(&box->p) << " " << U(&box->g, box->p.diam_dev, box->p.x_dev) << " ";
 	    for (int n = 0; n < NP; n++) {
 		    for (char d = 0; d < D; d++) {
 			    *of << box->p.x[d*NP+n] << " ";
-            }
-            for (char d = 0; d < D; d++) {
-			    *of << box->p.v[d*NP+n] << " ";
             }
         }
         *of << std::endl;
@@ -146,43 +161,71 @@ namespace PhysPeach{
     void getData(Box* box){
         std::cout << "Starting time loop: ID = " << box->id << std::endl;
         uint Nt, tag;
-        std::cout << "getting liniar datas in 10secs" << std::endl;
-        Nt = 10./box->dt;
-        tag = 0;
-        float Kcrr, Ucrr;
-        float Kav = 0;
-        float Uav = 0;
-        for(uint nt = 0; nt <=Nt; nt++){
-            tEvoBox(box);
-            if(nt >= tag){
-                box->t = nt * box->dt;
-                Kcrr = K(&box->p);
-                Ucrr = U(&box->g, box->p.diam_dev, box->p.x_dev);
-                    box->epltFile << box->t << " " << Kcrr + Ucrr << " " << Kcrr << " " << Ucrr << std::endl;
-                if(box->id == 1)
-                    recBox(&box->animeFile, box);
-                Kav += Kcrr;
-                Uav += Ucrr;
-                tag += 0.1/box->dt;
+        std::ofstream tFile;
+        std::ofstream eFile;
+        std::ofstream posFile;
+
+        if(box->id == 1){
+            std::cout << "getting liniarPlot datas in 5 secs" << std::endl;
+
+            std::string tLinpltName = "/tliniar.data";
+            tFile.open((box->NTDir + box->LDDir + tLinpltName).c_str());
+
+            std::ostringstream eLinpltName;
+            eLinpltName << box->NTDir + box->LDDir + box->EDir << "/id" << box->id << ".data";
+            eFile.open(eLinpltName.str().c_str());
+
+            std::ostringstream posLinpltName;
+            posLinpltName << box->NTDir + box->LDDir + box->posDir << "/id" << box->id << ".data";
+            posFile.open(posLinpltName.str().c_str());
+
+            Nt = 5./box->dt;
+            tag = 0;
+            for(uint nt = 0; nt < Nt; nt++){
+                tEvoBox(box);
+                if(nt >= tag){
+                    if(box->id == 1){
+                        tFile << nt * box->dt << std::endl;
+                    }
+                    eFile << K(&box->p) << " " << U(&box->g, box->p.diam_dev, box->p.x_dev) << std::endl;
+                    recPos(&posFile, box);
+                    tag += 0.1/box->dt;
+                }
             }
+            posFile.close();
+            eFile.close();
+            tFile.close();
+            std::string tLogpltName = "/tlog.data";
+            tFile.open((box->NTDir + box->LDDir + tLogpltName).c_str());
         }
-        Kav *= 0.01; Uav *= 0.01;
-        box->animeFile.close();
-        std::cout << "done! H = " << Kav + Uav << std::endl;
-        std::cout << "Kav = " << Kav << ", Uav = " << Uav << std::endl;
 
         std::cout << "getting logPlot datas" << std::endl;
+        std::ostringstream eLogpltName;
+        eLogpltName << box->NTDir + box->LDDir + box->EDir << "/id" << box->id << ".data";
+        eFile.open(eLogpltName.str().c_str());
+
+        std::ostringstream posLogpltName;
+        posLogpltName << box->NTDir + box->LDDir + box->posDir << "/id" << box->id << ".data";
+        posFile.open(posLogpltName.str().c_str());
+
         Nt = tmax/box->dt;
         tag = 10;
         for(uint nt = 0; nt <= Nt; nt++){
             tEvoBox(box);
             if(nt >= tag){
-                box->t = nt * box->dt;
-                recBox(&box->positionFile, box);
-                tag *= 1.1;
+                if(box->id == 1){
+                    tFile << nt * box->dt << std::endl;
+                }
+                eFile << K(&box->p) << " " << U(&box->g, box->p.diam_dev, box->p.x_dev) << std::endl;
+                recPos(&posFile, box);
+                tag *= 1.3;
             }
         }
-        box->positionFile.close();
+        if(box->id == 1){
+            tFile.close();
+        }
+        eFile.close();
+        posFile.close();
         std::cout << "Every steps have been done: ID = " << box->id << std::endl << std::endl;
         return;
     }
