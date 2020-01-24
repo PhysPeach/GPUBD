@@ -243,7 +243,7 @@ namespace PhysPeach{
                 }
                 eFile << K(&box->p) << " " << U(&box->g, box->p.diam_dev, box->p.x_dev) << std::endl;
                 recPos(&posFile, box);
-                tag *= 1.3;
+                tag *= 1.4;
             }
         }
         if(box->id == 1){
