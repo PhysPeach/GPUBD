@@ -9,9 +9,9 @@ namespace PhysPeach{
         //default settings
         box->id = 0;
         box->dt = dt_MD;
-        box->T = Tfin;
+        box->Tset = Tfin;
         box->L = sqrt((double)NP/(double)DNSTY);
-        box->thermalFuctor = sqrt(2*box->T/box->dt);
+        box->thermalFuctor = sqrt(2*box->Tset/box->dt);
         
         box->LDDir = "/LD";
         box->MDDir = "/MD";
@@ -97,7 +97,13 @@ namespace PhysPeach{
         setdt_T(box, dt_INIT, Tfin);
         prepareBox(box);
         setdt_T(box, dt_BD, Tfin);
-        equilibrateBox(box, tmax);
+        equilibrateBox(box, 0.3 * tmax);
+        std::cout << "Fix the Tempareture" << box->id << std::endl;
+        for(uint i = 0; i < 6; i++){
+            fixTemparature(box, 0.1 * tmax);
+        }
+        std::cout << "-> Fdone" << box->id << std::endl;
+        equilibrateBox(box, 0.1 * tmax);
         std::cout << "-> Init Done!" << std::endl;
         return;
     }
@@ -138,12 +144,31 @@ namespace PhysPeach{
 
     //equilibrations
     void equilibrateBox(Box* box, double teq){
-        std::cout << "Equilibrate the System: ID = " << box->id << std::endl;
+        std::cout << "Equilibrate the System: teq = " << teq << std::endl;
         uint Nt = teq/box->dt;
 	    for (uint nt = 0; nt < Nt; nt++) {
 		    tEvoBox(box);
 	    }
 	    std::cout << " -> Edone"<< box->id << std::endl;
+        return;
+    }
+    void fixTemparature(Box* box, double tfix){
+        float Tav = 0;
+        float dT;
+        uint rec = tfix/(100. * box->dt);
+        if(rec < 1){
+            rec = 1;
+        }
+        for(char c = 0; c < 100; c++){
+            for(uint nt = 0; nt < rec; nt++){
+                tEvoBox(box);
+            }
+            Tav += K(&box->p);
+        }
+        Tav = Tav * (float)D / 200.;
+        dT = Tfin - Tav;
+        setdt_T(box, dt_BD, box->Tset + 0.6 * dT);
+        std::cout << "Current Tav = " << Tav << ", set T = " << box->Tset << std::endl;
         return;
     }
 

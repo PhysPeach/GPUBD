@@ -18,7 +18,7 @@ namespace PhysPeach{
         //Declare System
         uint id;
         double dt;
-        float T; //temparature
+        float Tset; //setting temparature
         float thermalFuctor; //sqrt(2*ZT * T /dt)
         double L; //length of box
         Particles p;
@@ -36,7 +36,7 @@ namespace PhysPeach{
     };
     
     //setters and getters
-    inline void setdt_T(Box* box, double setdt, float setT){box->dt = setdt;box->T = setT;box->thermalFuctor = sqrt(2 * setT/setdt);return;}//
+    inline void setdt_T(Box* box, double setdt, float setT){box->dt = setdt;box->Tset = setT;box->thermalFuctor = sqrt(2 * setT/setdt);return;}//
     
     //inline float getNU(Box* box);
     void prepareBox(Box* box);
@@ -50,6 +50,7 @@ namespace PhysPeach{
     
     //equilibrations
     void equilibrateBox(Box* box, double teq);
+    void fixTemparature(Box* box, double tfix);
     
     //record
     void recPos(std::ofstream *of, Box* box);
