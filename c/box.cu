@@ -96,13 +96,7 @@ namespace PhysPeach{
     
         //for record
         prepareBox(box);
-        equilibrateBox(box, 0.3 * tmax);
-        std::cout << "Fix the Tempareture" << box->id << std::endl;
-        for(uint i = 0; i < 6; i++){
-            fixTemparature(box, 0.1 * tmax);
-        }
-        std::cout << "-> Fdone" << box->id << std::endl;
-        equilibrateBox(box, 0.1 * tmax);
+        equilibrateBox(box, tmax);
         std::cout << "-> Init Done!" << std::endl;
         return;
     }
@@ -151,26 +145,6 @@ namespace PhysPeach{
 	    std::cout << " -> Edone"<< box->id << std::endl;
         return;
     }
-    void fixTemparature(Box* box, double tfix){
-        float Tav = 0;
-        float dT;
-        uint rec = tfix/(100. * box->dt);
-        if(rec < 1){
-            rec = 1;
-        }
-        for(char c = 0; c < 100; c++){
-            for(uint nt = 0; nt < rec; nt++){
-                tEvoBox(box);
-            }
-            Tav += K(&box->p);
-        }
-        Tav = Tav * (float)D / 200.;
-        dT = Tfin - Tav;
-        setdt_T(box, dt_LD, box->Tset + 0.6 * dT);
-        std::cout << "Current Tav = " << Tav << ", set T = " << box->Tset << std::endl;
-        return;
-    }
-
     //record
     void recPos(std::ofstream *of, Box* box){
         cudaMemcpy(box->p.x, box->p.x_dev, D * NP * sizeof(double), cudaMemcpyDeviceToHost);
