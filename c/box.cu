@@ -139,7 +139,7 @@ namespace PhysPeach{
     //equilibrations
     void equilibrateBox(Box* box, double teq){
         std::cout << "Equilibrate the System: ID = " << box->id << std::endl;
-	    uint Nt = teq/box->dt;
+        uint Nt = teq/box->dt;
 	    for (uint nt = 0; nt < Nt; nt++) {
 		    tEvoBox(box);
 	    }
@@ -172,11 +172,11 @@ namespace PhysPeach{
             tFile.open((box->NTDir + box->LDDir + tLinpltName).c_str());
 
             std::ostringstream eLinpltName;
-            eLinpltName << box->NTDir + box->LDDir + box->EDir << "/id" << box->id << ".data";
+            eLinpltName << box->NTDir + box->LDDir + box->EDir << "/liniar.data";
             eFile.open(eLinpltName.str().c_str());
 
             std::ostringstream posLinpltName;
-            posLinpltName << box->NTDir + box->LDDir + box->posDir << "/id" << box->id << ".data";
+            posLinpltName << box->NTDir + box->LDDir + box->posDir << "/liniar.data";
             posFile.open(posLinpltName.str().c_str());
 
             Nt = 5./box->dt;
