@@ -62,6 +62,7 @@ namespace PhysPeach{
     }
 
     void prepareBox(Box* box){
+        setdt_T(box, dt_INIT, Tfin);
         std::cout << "Set InitPositions" << std::endl;
         scatterParticles(&box->p, box->L);
         struct stat st;
@@ -85,7 +86,7 @@ namespace PhysPeach{
         for(int nt = 0; nt < Nt; nt++){
             harmonicEvoBox(box);
         }
-        
+        setdt_T(box, dt_BD, Tfin);
         std::cout << "-> SIP Done!" << std::endl;
         return;
     }
@@ -94,9 +95,7 @@ namespace PhysPeach{
         std::cout << "Start Initialisation: ID = " << box->id << std::endl;
     
         //for record
-        setdt_T(box, dt_INIT, Tfin);
         prepareBox(box);
-        setdt_T(box, dt_BD, Tfin);
         equilibrateBox(box, 0.3 * tmax);
         std::cout << "Fix the Tempareture" << box->id << std::endl;
         for(uint i = 0; i < 6; i++){
