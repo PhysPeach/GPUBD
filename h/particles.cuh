@@ -31,7 +31,7 @@ namespace PhysPeach{
     void scatterParticles(Particles* particles, double L);
 
     //time evolutions
-    __global__ void vEvoBD(float *v, double dt, float themalFuctor, float *force, curandState *state);
+    __global__ void vEvoLD(float *v, double dt, float themalFuctor, float *force, curandState *state);
     __global__ void xEvo(double *x, double dt, double L, float *v);
     void removevg2D(Particles* p);
 

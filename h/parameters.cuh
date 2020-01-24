@@ -35,7 +35,7 @@ const float PI = 3.141593;
 
 //time constant
 const float dt_INIT = 0.01;
-const float dt_BD = 0.003;
+const float dt_LD = 0.003;
 const float dt_MD = 0.001;
 extern double tmax;
 

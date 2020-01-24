@@ -86,7 +86,7 @@ namespace PhysPeach{
         for(int nt = 0; nt < Nt; nt++){
             harmonicEvoBox(box);
         }
-        setdt_T(box, dt_BD, Tfin);
+        setdt_T(box, dt_LD, Tfin);
         std::cout << "-> SIP Done!" << std::endl;
         return;
     }
@@ -117,7 +117,7 @@ namespace PhysPeach{
             box->p.diam_dev, 
             box->p.x_dev
         );
-        vEvoBD<<<NB,NT>>>(box->p.v_dev, box->dt, 0, box->p.force_dev, box->p.rndState_dev);
+        vEvoLD<<<NB,NT>>>(box->p.v_dev, box->dt, 0, box->p.force_dev, box->p.rndState_dev);
         removevg2D(&box->p);
         xEvo<<<NB,NT>>>(box->p.x_dev, box->dt, box->L, box->p.v_dev);
         checkUpdate(&box->g, box->dt, box->p.x_dev, box->p.v_dev);
@@ -133,7 +133,7 @@ namespace PhysPeach{
             box->p.diam_dev, 
             box->p.x_dev
         );
-        vEvoBD<<<NB,NT>>>(box->p.v_dev, box->dt, box->thermalFuctor, box->p.force_dev, box->p.rndState_dev);
+        vEvoLD<<<NB,NT>>>(box->p.v_dev, box->dt, box->thermalFuctor, box->p.force_dev, box->p.rndState_dev);
         removevg2D(&box->p);
         xEvo<<<NB,NT>>>(box->p.x_dev, box->dt, box->L, box->p.v_dev);
         checkUpdate(&box->g, box->dt, box->p.x_dev, box->p.v_dev);
@@ -166,7 +166,7 @@ namespace PhysPeach{
         }
         Tav = Tav * (float)D / 200.;
         dT = Tfin - Tav;
-        setdt_T(box, dt_BD, box->Tset + 0.6 * dT);
+        setdt_T(box, dt_LD, box->Tset + 0.6 * dT);
         std::cout << "Current Tav = " << Tav << ", set T = " << box->Tset << std::endl;
         return;
     }

@@ -71,7 +71,7 @@ namespace PhysPeach{
     }
 
     //time evolutions
-    __global__ void vEvoBD(float *v, double dt, float thermalFuctor, float *force, curandState *state){
+    __global__ void vEvoLD(float *v, double dt, float thermalFuctor, float *force, curandState *state){
         uint i_global = blockIdx.x * blockDim.x + threadIdx.x;
         for(int i = i_global; i < D * NP; i += NB*NT){
             v[i] += dt*(-v[i] + force[i] + thermalFuctor*curand_normal(&state[i]));
