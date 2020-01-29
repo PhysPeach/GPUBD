@@ -32,7 +32,7 @@ int main(int argc, char** argv){
     for(uint i = IDs; i <= IDe; i++){
         initBox(&box, i);
         getDataLD(&box);
-        //connectLDtoMD
+        connectLDtoMD(&box);
         //getData(&box);
     }
     killBox(&box);

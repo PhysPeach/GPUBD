@@ -52,8 +52,7 @@ namespace PhysPeach{
     
     //equilibrations
     void equilibrateBox(Box* box, double teq);
-    void fixTemparature(Box* box, double tfix);
-    //void connectLDtoMD(Box* box);
+    void connectLDtoMD(Box* box);
     
     //record
     void recPos(std::ofstream *of, Box* box);

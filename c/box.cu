@@ -168,6 +168,24 @@ namespace PhysPeach{
 	    std::cout << " -> Edone"<< box->id << std::endl;
         return;
     }
+    void connectLDtoMD(Box* box){
+        float Ecrr;
+        float dE2;
+        float OK = 0.002 * 0.002;
+        setdt_T(box, dt_MD, Tfin);
+        std::cout << "connecting LD to MD" << std::endl;
+        while(1){
+            Ecrr = K(&box->p) + U(&box->g, box->p.diam_dev, box->p.x_dev);
+            dE2 = Ecrr - box->Eav;
+            dE2 *= dE2;
+            if(dE2 <= OK){
+                break;
+            }
+            tEvoLD(box);
+        }
+        std::cout << " -> done! at Ecrr = " << Ecrr << std::endl;
+        return;
+    }
     //record
     void recPos(std::ofstream *of, Box* box){
         cudaMemcpy(box->p.x, box->p.x_dev, D * NP * sizeof(double), cudaMemcpyDeviceToHost);
