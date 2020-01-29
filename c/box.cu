@@ -10,6 +10,7 @@ namespace PhysPeach{
         box->id = 0;
         box->dt = dt_MD;
         box->Tset = Tfin;
+        box->Eav = 0;
         box->L = sqrt((double)NP/(double)DNSTY);
         box->thermalFuctor = sqrt(2*box->Tset/box->dt);
         
@@ -178,9 +179,11 @@ namespace PhysPeach{
         *of << std::endl;
         return;
     }
-    void getData(Box* box){
+    void getDataLD(Box* box){
         std::cout << "Starting time loop: ID = " << box->id << std::endl;
-        uint Nt, tag;
+        uint Nt;
+        uint ntAtOutput;
+
         std::ofstream tFile;
         std::ofstream eFile;
         std::ofstream posFile;
@@ -200,16 +203,16 @@ namespace PhysPeach{
             posFile.open(posLinpltName.str().c_str());
 
             Nt = 5./box->dt;
-            tag = 0;
+            ntAtOutput = 0;
             for(uint nt = 0; nt < Nt; nt++){
                 tEvoLD(box);
-                if(nt >= tag){
+                if(nt >= ntAtOutput){
                     if(box->id == 1){
                         tFile << nt * box->dt << std::endl;
                     }
                     eFile << K(&box->p) << " " << U(&box->g, box->p.diam_dev, box->p.x_dev) << " " << std::endl;
                     recPos(&posFile, box);
-                    tag += 0.1/box->dt;
+                    ntAtOutput += 0.1/box->dt;
                 }
             }
             posFile.close();
@@ -229,18 +232,32 @@ namespace PhysPeach{
         posFile.open(posLogpltName.str().c_str());
 
         Nt = tmax/box->dt;
-        tag = 10;
+        ntAtOutput = 10;
+        uint ntAtTakingAverage = 0;
+        uint NextNtAtTakingAverage = Nt>>7;
+        if(NextNtAtTakingAverage == 0){
+            NextNtAtTakingAverage = 1;
+        }
+        uint numOfEnsemble = 0;
+        box->Eav = 0;
         for(uint nt = 0; nt <= Nt; nt++){
             tEvoLD(box);
-            if(nt >= tag){
+            if(nt >= ntAtOutput){
                 if(box->id == 1){
                     tFile << nt * box->dt << std::endl;
                 }
                 eFile << K(&box->p) << " " << U(&box->g, box->p.diam_dev, box->p.x_dev) << std::endl;
                 recPos(&posFile, box);
-                tag *= 1.3;
+                ntAtOutput *= 1.3;
+            }
+            if(nt >= ntAtTakingAverage){
+                box->Eav += K(&box->p)+U(&box->g, box->p.diam_dev, box->p.x_dev);
+                numOfEnsemble++;
+                ntAtTakingAverage += NextNtAtTakingAverage;
             }
         }
+        box->Eav /= (float)numOfEnsemble;
+        std::cout <<"Ensemble: " <<numOfEnsemble << ", Eav = " << box->Eav << std::endl;
         if(box->id == 1){
             tFile.close();
         }

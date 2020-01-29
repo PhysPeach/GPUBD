@@ -19,6 +19,7 @@ namespace PhysPeach{
         uint id;
         double dt;
         float Tset; //setting temparature
+        float Eav; //average of K + U on LD system
         float thermalFuctor; //sqrt(2*ZT * T /dt)
         double L; //length of box
         Particles p;
@@ -52,10 +53,11 @@ namespace PhysPeach{
     //equilibrations
     void equilibrateBox(Box* box, double teq);
     void fixTemparature(Box* box, double tfix);
+    //void connectLDtoMD(Box* box);
     
     //record
     void recPos(std::ofstream *of, Box* box);
-    void getData(Box* box);
+    void getDataLD(Box* box);
     void benchmark(Box* box, uint loop);
 }
 

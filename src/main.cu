@@ -31,7 +31,9 @@ int main(int argc, char** argv){
     makeBox(&box);
     for(uint i = IDs; i <= IDe; i++){
         initBox(&box, i);
-        getData(&box);
+        getDataLD(&box);
+        //connectLDtoMD
+        //getData(&box);
     }
     killBox(&box);
 
