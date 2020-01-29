@@ -10,6 +10,7 @@ namespace PhysPeach{
         box->id = 0;
         box->dt = dt_MD;
         box->Tset = Tfin;
+        box->Eav = 0;
         box->L = sqrt((double)NP/(double)DNSTY);
         box->thermalFuctor = sqrt(2*box->Tset/box->dt);
         
@@ -113,12 +114,12 @@ namespace PhysPeach{
         );
         vEvoLD<<<NB,NT>>>(box->p.v_dev, box->dt, 0, box->p.force_dev, box->p.rndState_dev);
         removevg2D(&box->p);
-        xEvo<<<NB,NT>>>(box->p.x_dev, box->dt, box->L, box->p.v_dev);
+        xEvoLD<<<NB,NT>>>(box->p.x_dev, box->dt, box->L, box->p.v_dev);
         checkUpdate(&box->g, box->dt, box->p.x_dev, box->p.v_dev);
 
         return;
     }
-    inline void tEvoBox(Box* box){
+    inline void tEvoLD(Box* box){
         culcFint2D<<<IB,IT>>>(
             box->g, 
             box->g.refCell_dev, 
@@ -129,7 +130,29 @@ namespace PhysPeach{
         );
         vEvoLD<<<NB,NT>>>(box->p.v_dev, box->dt, box->thermalFuctor, box->p.force_dev, box->p.rndState_dev);
         removevg2D(&box->p);
-        xEvo<<<NB,NT>>>(box->p.x_dev, box->dt, box->L, box->p.v_dev);
+        xEvoLD<<<NB,NT>>>(box->p.x_dev, box->dt, box->L, box->p.v_dev);
+        checkUpdate(&box->g, box->dt, box->p.x_dev, box->p.v_dev);
+        
+        return;
+    }
+    inline void tEvoMD(Box* box){
+        static unsigned short c = 0;
+        c++;
+        halfvEvoMD<<<NB,NT>>>(box->p.v_dev, box->dt, box->p.force_dev);
+        culcFint2D<<<IB,IT>>>(
+            box->g, 
+            box->g.refCell_dev, 
+            box->g.cell_dev, 
+            box->p.force_dev, 
+            box->p.diam_dev, 
+            box->p.x_dev
+        );
+        halfvEvoMD<<<NB,NT>>>(box->p.v_dev, box->dt, box->p.force_dev);
+        if(c >= 1000){
+            removevg2D(&box->p);
+            c = 0;
+        }
+        xEvoMD<<<NB,NT>>>(box->p.x_dev, box->dt, box->L, box->p.v_dev, box->p.force_dev);
         checkUpdate(&box->g, box->dt, box->p.x_dev, box->p.v_dev);
         
         return;
@@ -140,9 +163,27 @@ namespace PhysPeach{
         std::cout << "Equilibrate the System: teq = " << teq << std::endl;
         uint Nt = teq/box->dt;
 	    for (uint nt = 0; nt < Nt; nt++) {
-		    tEvoBox(box);
+		    tEvoLD(box);
 	    }
 	    std::cout << " -> Edone"<< box->id << std::endl;
+        return;
+    }
+    void connectLDtoMD(Box* box){
+        float Ecrr;
+        float dE2;
+        float OK = 0.002 * 0.002;
+        setdt_T(box, dt_MD, Tfin);
+        std::cout << "connecting LD to MD" << std::endl;
+        while(1){
+            Ecrr = K(&box->p) + U(&box->g, box->p.diam_dev, box->p.x_dev);
+            dE2 = Ecrr - box->Eav;
+            dE2 *= dE2;
+            if(dE2 <= OK){
+                break;
+            }
+            tEvoLD(box);
+        }
+        std::cout << " -> done! at Ecrr = " << Ecrr << std::endl;
         return;
     }
     //record
@@ -156,9 +197,11 @@ namespace PhysPeach{
         *of << std::endl;
         return;
     }
-    void getData(Box* box){
-        std::cout << "Starting time loop: ID = " << box->id << std::endl;
-        uint Nt, tag;
+    void getDataLD(Box* box){
+        std::cout << "Starting LD time loop: ID = " << box->id << std::endl;
+        uint Nt;
+        uint ntAtOutput;
+
         std::ofstream tFile;
         std::ofstream eFile;
         std::ofstream posFile;
@@ -178,16 +221,16 @@ namespace PhysPeach{
             posFile.open(posLinpltName.str().c_str());
 
             Nt = 5./box->dt;
-            tag = 0;
+            ntAtOutput = 0;
             for(uint nt = 0; nt < Nt; nt++){
-                tEvoBox(box);
-                if(nt >= tag){
+                tEvoLD(box);
+                if(nt >= ntAtOutput){
                     if(box->id == 1){
                         tFile << nt * box->dt << std::endl;
                     }
-                    eFile << K(&box->p) << " " << U(&box->g, box->p.diam_dev, box->p.x_dev) << std::endl;
+                    eFile << K(&box->p) << " " << U(&box->g, box->p.diam_dev, box->p.x_dev) << " " << std::endl;
                     recPos(&posFile, box);
-                    tag += 0.1/box->dt;
+                    ntAtOutput += 0.1/box->dt;
                 }
             }
             posFile.close();
@@ -207,16 +250,103 @@ namespace PhysPeach{
         posFile.open(posLogpltName.str().c_str());
 
         Nt = tmax/box->dt;
-        tag = 10;
+        ntAtOutput = 10;
+        uint ntAtTakingAverage = 0;
+        uint NextNtAtTakingAverage = Nt>>7;
+        if(NextNtAtTakingAverage == 0){
+            NextNtAtTakingAverage = 1;
+        }
+        uint numOfEnsemble = 0;
+        box->Eav = 0;
         for(uint nt = 0; nt <= Nt; nt++){
-            tEvoBox(box);
-            if(nt >= tag){
+            tEvoLD(box);
+            if(nt >= ntAtOutput){
                 if(box->id == 1){
                     tFile << nt * box->dt << std::endl;
                 }
                 eFile << K(&box->p) << " " << U(&box->g, box->p.diam_dev, box->p.x_dev) << std::endl;
                 recPos(&posFile, box);
-                tag *= 1.4;
+                ntAtOutput *= 1.3;
+            }
+            if(nt >= ntAtTakingAverage){
+                box->Eav += K(&box->p)+U(&box->g, box->p.diam_dev, box->p.x_dev);
+                numOfEnsemble++;
+                ntAtTakingAverage += NextNtAtTakingAverage;
+            }
+        }
+        box->Eav /= (float)numOfEnsemble;
+        std::cout <<"Ensemble: " <<numOfEnsemble << ", Eav = " << box->Eav << std::endl;
+        if(box->id == 1){
+            tFile.close();
+        }
+        eFile.close();
+        posFile.close();
+        std::cout << "Every LD steps have been done: ID = " << box->id << std::endl;
+        return;
+    }
+    void getDataMD(Box* box){
+        std::cout << "Starting MD time loop: ID = " << box->id << std::endl;
+        uint Nt;
+        uint ntAtOutput;
+
+        std::ofstream tFile;
+        std::ofstream eFile;
+        std::ofstream posFile;
+
+        if(box->id == 1){
+            std::cout << "getting liniarPlot datas in 5 secs" << std::endl;
+
+            std::string tLinpltName = "/tliniar.data";
+            tFile.open((box->NTDir + box->MDDir + tLinpltName).c_str());
+
+            std::ostringstream eLinpltName;
+            eLinpltName << box->NTDir + box->MDDir + box->EDir << "/liniar.data";
+            eFile.open(eLinpltName.str().c_str());
+
+            std::ostringstream posLinpltName;
+            posLinpltName << box->NTDir + box->MDDir + box->posDir << "/liniar.data";
+            posFile.open(posLinpltName.str().c_str());
+
+            Nt = 5./box->dt;
+            ntAtOutput = 0;
+            for(uint nt = 0; nt < Nt; nt++){
+                tEvoMD(box);
+                if(nt >= ntAtOutput){
+                    if(box->id == 1){
+                        tFile << nt * box->dt << std::endl;
+                    }
+                    eFile << K(&box->p) << " " << U(&box->g, box->p.diam_dev, box->p.x_dev) << " " << std::endl;
+                    recPos(&posFile, box);
+                    ntAtOutput += 0.1/box->dt;
+                }
+            }
+            posFile.close();
+            eFile.close();
+            tFile.close();
+            std::string tLogpltName = "/tlog.data";
+            tFile.open((box->NTDir + box->MDDir + tLogpltName).c_str());
+        }
+
+        std::cout << "getting logPlot datas" << std::endl;
+        std::ostringstream eLogpltName;
+        eLogpltName << box->NTDir + box->MDDir + box->EDir << "/id" << box->id << ".data";
+        eFile.open(eLogpltName.str().c_str());
+
+        std::ostringstream posLogpltName;
+        posLogpltName << box->NTDir + box->MDDir + box->posDir << "/id" << box->id << ".data";
+        posFile.open(posLogpltName.str().c_str());
+
+        Nt = tmax/box->dt;
+        ntAtOutput = 10;
+        for(uint nt = 0; nt <= Nt; nt++){
+            tEvoMD(box);
+            if(nt >= ntAtOutput){
+                if(box->id == 1){
+                    tFile << nt * box->dt << std::endl;
+                }
+                eFile << K(&box->p) << " " << U(&box->g, box->p.diam_dev, box->p.x_dev) << std::endl;
+                recPos(&posFile, box);
+                ntAtOutput *= 1.3;
             }
         }
         if(box->id == 1){
@@ -224,12 +354,12 @@ namespace PhysPeach{
         }
         eFile.close();
         posFile.close();
-        std::cout << "Every steps have been done: ID = " << box->id << std::endl << std::endl;
+        std::cout << "Every MD steps have been done: ID = " << box->id << std::endl << std::endl;
         return;
     }
     void benchmark(Box* box, uint loop){
         for(uint l = 0; l <=loop; l++){
-            tEvoBox(box);
+            tEvoLD(box);
         }
         return;
     }

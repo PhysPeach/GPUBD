@@ -77,10 +77,29 @@ namespace PhysPeach{
             v[i] += dt*(-v[i] + force[i] + thermalFuctor*curand_normal(&state[i]));
         }
     }
-    __global__ void xEvo(double *x, double dt, double L, float *v){
+    __global__ void xEvoLD(double *x, double dt, double L, float *v){
         uint i_global = blockIdx.x * blockDim.x + threadIdx.x;
         for(int i = i_global; i < D * NP; i += NB*NT){
             x[i] += dt * v[i];
+            //periodic
+            if(x[i] > L){
+                x[i] -= L;
+            }
+            else if(x[i] < 0){
+                x[i] += L;
+            }
+        }
+    }
+    __global__ void halfvEvoMD(float *v, double dt, float *force){
+        uint i_global = blockIdx.x * blockDim.x + threadIdx.x;
+        for(int i = i_global; i < D * NP; i += NB*NT){
+            v[i] += 0.5*dt*force[i];
+        }
+    }
+    __global__ void xEvoMD(double *x, double dt, double L, float *v, float *force){
+        uint i_global = blockIdx.x * blockDim.x + threadIdx.x;
+        for(int i = i_global; i < D * NP; i += NB*NT){
+            x[i] += dt * v[i] + 0.5*dt*dt*force[i];
             //periodic
             if(x[i] > L){
                 x[i] -= L;

@@ -32,7 +32,9 @@ namespace PhysPeach{
 
     //time evolutions
     __global__ void vEvoLD(float *v, double dt, float themalFuctor, float *force, curandState *state);
-    __global__ void xEvo(double *x, double dt, double L, float *v);
+    __global__ void xEvoLD(double *x, double dt, double L, float *v);
+    __global__ void halfvEvoMD(float *v, double dt, float *force);
+    __global__ void xEvoMD(double *x, double dt, double L, float *v, float *force);
     void removevg2D(Particles* p);
 
     //setters and getters
