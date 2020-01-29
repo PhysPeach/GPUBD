@@ -46,7 +46,8 @@ namespace PhysPeach{
 
     //time evolution
     inline void harmonicEvoBox(Box* box);
-    inline void tEvoBox(Box* box);
+    inline void tEvoLD(Box* box);
+    inline void tEvoMD(Box* box);
     
     //equilibrations
     void equilibrateBox(Box* box, double teq);

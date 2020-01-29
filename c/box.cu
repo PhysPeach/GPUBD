@@ -113,12 +113,12 @@ namespace PhysPeach{
         );
         vEvoLD<<<NB,NT>>>(box->p.v_dev, box->dt, 0, box->p.force_dev, box->p.rndState_dev);
         removevg2D(&box->p);
-        xEvo<<<NB,NT>>>(box->p.x_dev, box->dt, box->L, box->p.v_dev);
+        xEvoLD<<<NB,NT>>>(box->p.x_dev, box->dt, box->L, box->p.v_dev);
         checkUpdate(&box->g, box->dt, box->p.x_dev, box->p.v_dev);
 
         return;
     }
-    inline void tEvoBox(Box* box){
+    inline void tEvoLD(Box* box){
         culcFint2D<<<IB,IT>>>(
             box->g, 
             box->g.refCell_dev, 
@@ -129,7 +129,29 @@ namespace PhysPeach{
         );
         vEvoLD<<<NB,NT>>>(box->p.v_dev, box->dt, box->thermalFuctor, box->p.force_dev, box->p.rndState_dev);
         removevg2D(&box->p);
-        xEvo<<<NB,NT>>>(box->p.x_dev, box->dt, box->L, box->p.v_dev);
+        xEvoLD<<<NB,NT>>>(box->p.x_dev, box->dt, box->L, box->p.v_dev);
+        checkUpdate(&box->g, box->dt, box->p.x_dev, box->p.v_dev);
+        
+        return;
+    }
+    inline void tEvoMD(Box* box){
+        static unsigned short c = 0;
+        c++;
+        halfvEvoMD<<<NB,NT>>>(box->p.v_dev, box->dt, box->p.force_dev);
+        culcFint2D<<<IB,IT>>>(
+            box->g, 
+            box->g.refCell_dev, 
+            box->g.cell_dev, 
+            box->p.force_dev, 
+            box->p.diam_dev, 
+            box->p.x_dev
+        );
+        halfvEvoMD<<<NB,NT>>>(box->p.v_dev, box->dt, box->p.force_dev);
+        if(c >= 1000){
+            removevg2D(&box->p);
+            c = 0;
+        }
+        xEvoMD<<<NB,NT>>>(box->p.x_dev, box->dt, box->L, box->p.v_dev, box->p.force_dev);
         checkUpdate(&box->g, box->dt, box->p.x_dev, box->p.v_dev);
         
         return;
@@ -140,7 +162,7 @@ namespace PhysPeach{
         std::cout << "Equilibrate the System: teq = " << teq << std::endl;
         uint Nt = teq/box->dt;
 	    for (uint nt = 0; nt < Nt; nt++) {
-		    tEvoBox(box);
+		    tEvoLD(box);
 	    }
 	    std::cout << " -> Edone"<< box->id << std::endl;
         return;
@@ -180,12 +202,12 @@ namespace PhysPeach{
             Nt = 5./box->dt;
             tag = 0;
             for(uint nt = 0; nt < Nt; nt++){
-                tEvoBox(box);
+                tEvoLD(box);
                 if(nt >= tag){
                     if(box->id == 1){
                         tFile << nt * box->dt << std::endl;
                     }
-                    eFile << K(&box->p) << " " << U(&box->g, box->p.diam_dev, box->p.x_dev) << std::endl;
+                    eFile << K(&box->p) << " " << U(&box->g, box->p.diam_dev, box->p.x_dev) << " " << std::endl;
                     recPos(&posFile, box);
                     tag += 0.1/box->dt;
                 }
@@ -209,14 +231,14 @@ namespace PhysPeach{
         Nt = tmax/box->dt;
         tag = 10;
         for(uint nt = 0; nt <= Nt; nt++){
-            tEvoBox(box);
+            tEvoLD(box);
             if(nt >= tag){
                 if(box->id == 1){
                     tFile << nt * box->dt << std::endl;
                 }
                 eFile << K(&box->p) << " " << U(&box->g, box->p.diam_dev, box->p.x_dev) << std::endl;
                 recPos(&posFile, box);
-                tag *= 1.4;
+                tag *= 1.3;
             }
         }
         if(box->id == 1){
@@ -229,7 +251,7 @@ namespace PhysPeach{
     }
     void benchmark(Box* box, uint loop){
         for(uint l = 0; l <=loop; l++){
-            tEvoBox(box);
+            tEvoLD(box);
         }
         return;
     }
