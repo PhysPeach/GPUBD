@@ -57,6 +57,7 @@ namespace PhysPeach{
     //record
     void recPos(std::ofstream *of, Box* box);
     void getDataLD(Box* box);
+    void getDataMD(Box* box);
     void benchmark(Box* box, uint loop);
 }
 

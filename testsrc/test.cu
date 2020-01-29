@@ -35,6 +35,8 @@ int main(){
     for(uint i = IDs; i <= IDe; i++){
         initBox(&box, i);
         getDataLD(&box);
+        connectLDtoMD(&box);
+        getDataMD(&box);
     }
     killBox(&box);
 

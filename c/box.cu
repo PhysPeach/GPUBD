@@ -198,7 +198,7 @@ namespace PhysPeach{
         return;
     }
     void getDataLD(Box* box){
-        std::cout << "Starting time loop: ID = " << box->id << std::endl;
+        std::cout << "Starting LD time loop: ID = " << box->id << std::endl;
         uint Nt;
         uint ntAtOutput;
 
@@ -281,7 +281,80 @@ namespace PhysPeach{
         }
         eFile.close();
         posFile.close();
-        std::cout << "Every steps have been done: ID = " << box->id << std::endl << std::endl;
+        std::cout << "Every LD steps have been done: ID = " << box->id << std::endl;
+        return;
+    }
+    void getDataMD(Box* box){
+        std::cout << "Starting MD time loop: ID = " << box->id << std::endl;
+        uint Nt;
+        uint ntAtOutput;
+
+        std::ofstream tFile;
+        std::ofstream eFile;
+        std::ofstream posFile;
+
+        if(box->id == 1){
+            std::cout << "getting liniarPlot datas in 5 secs" << std::endl;
+
+            std::string tLinpltName = "/tliniar.data";
+            tFile.open((box->NTDir + box->MDDir + tLinpltName).c_str());
+
+            std::ostringstream eLinpltName;
+            eLinpltName << box->NTDir + box->MDDir + box->EDir << "/liniar.data";
+            eFile.open(eLinpltName.str().c_str());
+
+            std::ostringstream posLinpltName;
+            posLinpltName << box->NTDir + box->MDDir + box->posDir << "/liniar.data";
+            posFile.open(posLinpltName.str().c_str());
+
+            Nt = 5./box->dt;
+            ntAtOutput = 0;
+            for(uint nt = 0; nt < Nt; nt++){
+                tEvoMD(box);
+                if(nt >= ntAtOutput){
+                    if(box->id == 1){
+                        tFile << nt * box->dt << std::endl;
+                    }
+                    eFile << K(&box->p) << " " << U(&box->g, box->p.diam_dev, box->p.x_dev) << " " << std::endl;
+                    recPos(&posFile, box);
+                    ntAtOutput += 0.1/box->dt;
+                }
+            }
+            posFile.close();
+            eFile.close();
+            tFile.close();
+            std::string tLogpltName = "/tlog.data";
+            tFile.open((box->NTDir + box->MDDir + tLogpltName).c_str());
+        }
+
+        std::cout << "getting logPlot datas" << std::endl;
+        std::ostringstream eLogpltName;
+        eLogpltName << box->NTDir + box->MDDir + box->EDir << "/id" << box->id << ".data";
+        eFile.open(eLogpltName.str().c_str());
+
+        std::ostringstream posLogpltName;
+        posLogpltName << box->NTDir + box->MDDir + box->posDir << "/id" << box->id << ".data";
+        posFile.open(posLogpltName.str().c_str());
+
+        Nt = tmax/box->dt;
+        ntAtOutput = 10;
+        for(uint nt = 0; nt <= Nt; nt++){
+            tEvoMD(box);
+            if(nt >= ntAtOutput){
+                if(box->id == 1){
+                    tFile << nt * box->dt << std::endl;
+                }
+                eFile << K(&box->p) << " " << U(&box->g, box->p.diam_dev, box->p.x_dev) << std::endl;
+                recPos(&posFile, box);
+                ntAtOutput *= 1.3;
+            }
+        }
+        if(box->id == 1){
+            tFile.close();
+        }
+        eFile.close();
+        posFile.close();
+        std::cout << "Every MD steps have been done: ID = " << box->id << std::endl << std::endl;
         return;
     }
     void benchmark(Box* box, uint loop){

@@ -33,7 +33,7 @@ int main(int argc, char** argv){
         initBox(&box, i);
         getDataLD(&box);
         connectLDtoMD(&box);
-        //getData(&box);
+        getDataMD(&box);
     }
     killBox(&box);
 
